@@ -1,0 +1,20 @@
+[
+{
+  "directory": "C:/Users/lukas/Documents/04_projects/LBM/build",
+  "command": "C:\\Strawberry\\c\\bin\\c++.exe -IC:/Users/lukas/Documents/04_projects/LBM/include -std=gnu++17 -o CMakeFiles\\LBM.dir\\src\\main.cpp.obj -c C:\\Users\\lukas\\Documents\\04_projects\\LBM\\src\\main.cpp",
+  "file": "C:\\Users\\lukas\\Documents\\04_projects\\LBM\\src\\main.cpp",
+  "output": "CMakeFiles\\LBM.dir\\src\\main.cpp.obj"
+},
+{
+  "directory": "C:/Users/lukas/Documents/04_projects/LBM/build",
+  "command": "C:\\Strawberry\\c\\bin\\c++.exe -IC:/Users/lukas/Documents/04_projects/LBM/include -std=gnu++17 -o CMakeFiles\\LBM.dir\\src\\helpers.cpp.obj -c C:\\Users\\lukas\\Documents\\04_projects\\LBM\\src\\helpers.cpp",
+  "file": "C:\\Users\\lukas\\Documents\\04_projects\\LBM\\src\\helpers.cpp",
+  "output": "CMakeFiles\\LBM.dir\\src\\helpers.cpp.obj"
+},
+{
+  "directory": "C:/Users/lukas/Documents/04_projects/LBM/build",
+  "command": "C:\\Strawberry\\c\\bin\\c++.exe -IC:/Users/lukas/Documents/04_projects/LBM/include -std=gnu++17 -o CMakeFiles\\LBM.dir\\src\\py_action.cpp.obj -c C:\\Users\\lukas\\Documents\\04_projects\\LBM\\src\\py_action.cpp",
+  "file": "C:\\Users\\lukas\\Documents\\04_projects\\LBM\\src\\py_action.cpp",
+  "output": "CMakeFiles\\LBM.dir\\src\\py_action.cpp.obj"
+}
+]
