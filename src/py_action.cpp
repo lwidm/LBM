@@ -1,19 +1,21 @@
 #include "py_action.h"
 #include "helpers.h"
-#include <algorithm>
+#include <chrono>
+#include <cmath>
 #include <cstdio>
+#include <errhandlingapi.h>
+#include <handleapi.h>
 #include <iostream>
 #include <memory>
-#include <minwindef.h>
 #include <string>
 #include <thread>
 
-#ifdef __linux__
-#include <fcntl.h>
-#include <sys/mman.h>
-#include <unistd.h>
+int py_semph_take(std::shared_ptr<int> semph_ptr, const int &max_wait_ms);
+int py_semph_give(std::shared_ptr<int> semph_ptr);
 
-int createSharedMemory(SharedMemory_struct &sharedmemory_struct,
+#ifdef __linux__
+
+int createSharedMemory(unique_ptr_shared_memory &sharedmemory_struct,
                        const std::size_t &shared_memory_size,
                        const char *shared_memory_name) {
   int shm_fd = shm_open(shared_memory_name, O_CREAT | O_RDWR, 0666);
@@ -37,22 +39,16 @@ int createSharedMemory(SharedMemory_struct &sharedmemory_struct,
     close(shm_fd);
     return 1;
   }
-  sharedmemory_struct.map = map;
-  sharedmemory_struct.mapFile = shm_fd;
-  sharedmemory_struct.size = shared_memory_size;
-  sharedmemory_struct.name = shared_memory_name;
+  sharedmemory_struct->map = map;
+  sharedmemory_struct->mapFile = shm_fd;
+  sharedmemory_struct->size = shared_memory_size;
+  sharedmemory_struct->name = shared_memory_name;
   return 0;
-}
-
-int cleanSharedMemory(SharedMemory_struct &sharedmemory_struct) {
-  munmap(sharedmemory_struct.map, sharedmemory_struct.size);
-  close(sharedmemory_struct.mapFile);
-  shm_unlink(sharedmemory_struct.name);
 }
 
 #elif _WIN32
 
-int createSharedMemory(SharedMemory_struct &sharedmemory_struct,
+int createSharedMemory(unique_ptr_shared_memory &sharedmemory_struct,
                        const std::size_t &shared_memory_size,
                        const char *shared_memory_name) {
   HANDLE hMapFile =
@@ -73,16 +69,12 @@ int createSharedMemory(SharedMemory_struct &sharedmemory_struct,
     CloseHandle(hMapFile);
     return 1;
   }
-  sharedmemory_struct.map = map;
-  sharedmemory_struct.mapFile = hMapFile;
+  sharedmemory_struct->map = map;
+  sharedmemory_struct->mapFile = hMapFile;
+  sharedmemory_struct->size = shared_memory_size;
   return 0;
 }
 
-int cleanSharedMemory(SharedMemory_struct &sharedmemory_struct) {
-  UnmapViewOfFile(sharedmemory_struct.map);
-  CloseHandle(sharedmemory_struct.mapFile);
-  return 0;
-}
 #else
 print_err(
     "py_action.cpp",
@@ -91,64 +83,198 @@ print_err(
 
 // ########### Main Program #########
 
-#define PYTHON_DIR "C:/Users/lukas/Documents/04_projects/LBM/src/python"
-std::string python_cmd = std::string("python ") + PYTHON_DIR + "/plot.py";
 const char *shared_memory_name = "py_action_memory";
 
-int py_init(SharedMemory_struct &sharedmemory_struct,
-            std::unique_ptr<double[]> &shared_dArray, FILE *&pipe,
+int read_semph(int &semph_value, const int *semph_ptr) {
+  const int read_value = *semph_ptr;
+  semph_value = read_value;
+  if (semph_value < 0) {
+    print_err("py_action.cpp", "Python action semaphore has a negative value");
+    return 1;
+  }
+  return 0;
+}
+
+void py_semph_init(std::shared_ptr<int> semph_ptr, const int &init_val) {
+  *semph_ptr = init_val;
+}
+
+int py_semph_give(std::shared_ptr<int> semph_ptr) {
+  int semph_value;
+  int err = read_semph(semph_value, semph_ptr.get());
+  if (err != 0) {
+    print_err("py_action.cpp", "Failed to read python action semaphore");
+    return 1;
+  }
+  *semph_ptr = semph_value + 1;
+  return 0;
+}
+
+int py_semph_take(std::shared_ptr<int> semph_ptr, const int &max_wait_ms) {
+  int semph_value;
+  int err = read_semph(semph_value, semph_ptr.get());
+  if (err != 0) {
+    print_err("py_action.cpp", "Failed to read python action semaphore");
+    return 1;
+  }
+  auto start_time = std::chrono::steady_clock::now();
+  while (semph_value < 1) {
+    if (max_wait_ms != -1) {
+      auto current_time = std::chrono::steady_clock::now();
+      auto elapsed_time = std::chrono::duration_cast<std::chrono::milliseconds>(
+          current_time - start_time);
+      if (elapsed_time.count() >= max_wait_ms) {
+        print_err("py_action.cpp",
+                  "Python action semaphore take wait time exceeded");
+        return 1;
+      }
+    }
+    std::this_thread::sleep_for(std::chrono::milliseconds(1));
+    err = read_semph(semph_value, semph_ptr.get());
+    if (err != 0) {
+      print_err("py_action.cpp", "Failed to read python action semaphore");
+      return 1;
+    }
+  }
+  *semph_ptr = semph_value - 1;
+  return 0;
+}
+
+int py_init(unique_ptr_shared_memory &sharedmemory_struct,
+            std::shared_ptr<double[]> shared_dArray,
+            std::shared_ptr<int> semph_ptr, FILE *&pipe,
             const std::size_t &mmap_max_vector_size) {
+
+  std::string python_cmd =
+      std::string("python ") + std::string(PYTHON_DIR) + "/py_action.py";
 
   pipe = _popen(python_cmd.c_str(), "w");
   if (!pipe) {
     shared_dArray.reset();
     std::cerr
-        << "ERROR <py_action.cpp>: Failed to start Python script (command: \""
+        << "ERROR <py_action.cpp>: Failed to start Python script (command:\""
         << python_cmd << "\")" << std::endl;
     return 1;
   }
-  const std::size_t shared_memory_size = mmap_max_vector_size * sizeof(double);
+  const std::size_t shared_memory_size =
+      (mmap_max_vector_size + 1) * sizeof(double);
 
   createSharedMemory(sharedmemory_struct, shared_memory_size,
                      shared_memory_name);
 
-  shared_dArray.reset(static_cast<double *>(sharedmemory_struct.map));
+  char *base_ptr = static_cast<char *>(sharedmemory_struct->map);
+  shared_dArray.reset(reinterpret_cast<double *>(base_ptr) + sizeof(int));
+  semph_ptr.reset(static_cast<int *>(sharedmemory_struct->map));
+  // py_semph_init(semph_ptr, 1);
 
-  std::size_t wait_seconds = std::max(mmap_max_vector_size / (2 * 1024 * 1024),
-                                      static_cast<std::size_t>(5));
-  std::this_thread::sleep_for(std::chrono::seconds(wait_seconds));
-  fflush(pipe);
-  fflush(stdout);
+  // std::size_t wait_seconds = std::max(mmap_max_vector_size / (5 * 1024 *
+  // 1024),
+  //                                     static_cast<std::size_t>(2));
+  // fflush(stdout);
+  // fflush(pipe);
+  // std::this_thread::sleep_for(std::chrono::seconds(wait_seconds));
+  // fprintf(pipe, "start\n");
+  // fflush(pipe);
+  // py_semph_give(semph_ptr);
+  std::cout << "\n end of py_init \n" << std::endl;
 
-  fprintf(pipe, "start\n");
-  fflush(pipe);
   return 0;
 }
 
-int py_clean(SharedMemory_struct &sharedmemory_struct, FILE *&pipe,
-             std::unique_ptr<double[]> &shared_dArray) {
+int py_clean(unique_ptr_shared_memory &sharedmemory_struct, FILE *&pipe,
+             std::shared_ptr<double[]> shared_dArray,
+             std::shared_ptr<int> semph_ptr) {
 
-  cleanSharedMemory(sharedmemory_struct);
-  fprintf(pipe, "-1\n");
+  py_semph_take(semph_ptr, -1);
+  fprintf(pipe, "%i\n", SHUTDOWN);
   fflush(pipe);
+  py_semph_take(semph_ptr, -1);
+  py_semph_give(semph_ptr);
 
   int status = _pclose(pipe);
   if (status < 0) {
     std::cerr << "ERROR <py_action.cpp>: Failed to close Python script pipe. "
-              << "Errorcode: " << status << " (command : \"" << python_cmd
-              << "\")" << std::endl;
+              << "Errorcode: " << status << std::endl;
     return 1;
   }
   shared_dArray.reset();
+  semph_ptr.reset();
+  sharedmemory_struct.reset();
   return 0;
 }
 
-int py_print(FILE *&pipe, std::unique_ptr<double[]> &shared_dArray,
-             const std::size_t &Nx, const std::size_t &Ny,
-             const std::size_t &Nz) {
+int py_print(FILE *&pipe, std::shared_ptr<double[]> shared_dArray,
+             std::shared_ptr<int> semph_ptr, const Gridsize &gridsize,
+             const Eigen::ArrayXXd &Z) {
+
+  std::size_t size = gridsize[0] * gridsize[1] * gridsize[2];
+  Eigen::VectorXd Z_flat = Z.reshaped();
+
+  py_semph_take(semph_ptr, -1);
+  std::memcpy(shared_dArray.get(), Z.data(), size * sizeof(double));
+  py_semph_give(semph_ptr);
+
+  py_semph_take(semph_ptr, -1);
   fprintf(pipe, "%i\n", PRINT);
   fflush(pipe);
-  fprintf(pipe, "%zu %zu %zu\n", Nx, Ny, Nz);
+  py_semph_take(semph_ptr, -1);
+  py_semph_give(semph_ptr);
+
+  py_semph_take(semph_ptr, -1);
+  fprintf(pipe, "%zu %zu %zu\n", gridsize[0], gridsize[1], gridsize[2]);
   fflush(pipe);
+  py_semph_take(semph_ptr, -1);
+  py_semph_give(semph_ptr);
+
+  return 0;
+}
+
+int py_figure(FILE *&pipe, const std::size_t &fig_idx,
+              const std::array<double, 2> figsize) {
+  fprintf(pipe, "%i", FIGURE);
+  fflush(pipe);
+  fprintf(pipe, "%zu", fig_idx);
+  fflush(pipe);
+  fprintf(pipe, "%f %f", figsize[0], figsize[1]);
+  fflush(pipe);
+  return 0;
+}
+
+int py_pcolor(FILE *&pipe, std::shared_ptr<double[]> shared_dArray,
+              std::shared_ptr<int> semph_ptr, std::size_t &fig_idx,
+              const Gridsize &gridsize, const Grid &grid,
+              const Eigen::ArrayXXd &Z) {
+
+  if (gridsize[2] != 1) {
+    print_err("py_action.cpp",
+              "py_print Function only works for 1D or 2D arrays");
+    return 1;
+  }
+  std::size_t size = gridsize[0] * gridsize[1];
+  py_semph_take(semph_ptr, -1);
+  std::memcpy(shared_dArray.get(), Z.data(), size * sizeof(double));
+  std::memcpy(shared_dArray.get() + size, grid.X.data(), size * sizeof(double));
+  std::memcpy(shared_dArray.get() + size * 2, grid.Y.data(),
+              size * sizeof(double));
+  py_semph_give(semph_ptr);
+
+  py_semph_take(semph_ptr, -1);
+  fprintf(pipe, "%i\n", PCOLOR);
+  fflush(pipe);
+  py_semph_take(semph_ptr, -1);
+  py_semph_give(semph_ptr);
+
+  py_semph_take(semph_ptr, -1);
+  fprintf(pipe, "%zu\n", fig_idx);
+  fflush(pipe);
+  py_semph_take(semph_ptr, -1);
+  py_semph_give(semph_ptr);
+
+  py_semph_take(semph_ptr, -1);
+  fprintf(pipe, "%zu %zu\n", gridsize[0], gridsize[1]);
+  fflush(pipe);
+  py_semph_take(semph_ptr, -1);
+  py_semph_give(semph_ptr);
+
   return 0;
 }

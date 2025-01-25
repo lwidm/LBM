@@ -9,8 +9,14 @@ include_directories(${CMAKE_CURRENT_SOURCE_DIR}/include)
 add_executable(
   ${PROJECT_NAME}
   ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/analytical.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/helpers.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/py_action.cpp)
+
+# Python Files
+set(PYTHON_DIR "${CMAKE_SOURCE_DIR}/src/python")
+file(TO_CMAKE_PATH "${PYTHON_DIR}" PYTHON_DIR)
+target_compile_definitions(${PROJECT_NAME} PRIVATE PYTHON_DIR=\"${PYTHON_DIR}\")
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
   message(
