@@ -1,13 +1,12 @@
 #include "main.h"
 #include "analytical.h"
 #include "helpers.h"
-#include "py_action.h"
 
 #include <array>
 #include <cstddef>
 #include <functional>
-#include <iostream>
-#include <memory>
+
+static std::string filename = "main.cpp";
 
 /**
  * \brief Initializes the state variables for the lattice Boltzmann simulation.
@@ -85,6 +84,7 @@ int main() {
   // ----------- flow setup -----------
   double dr = 1;
   double dt = 1;
+  double sim_time = 1000;
   double rho_0 = 1;
   double p_0 = rho_0 / 3;
   double Re = 20;
@@ -93,23 +93,6 @@ int main() {
   std::array<double, 3> u_0;
   for (std::size_t i = 0; i < 3; ++i) {
     u_0[i] = Re / (double)(D[i]) * nu;
-  }
-
-  // ----------- initializing shared memory for python actions -----------
-  auto p_sharedmemory_struct =
-      unique_ptr_shared_memory(new SharedMemory_struct{nullptr, nullptr});
-  std::shared_ptr<double[]> shared_dArray;
-  std::shared_ptr<int> semph_ptr;
-  FILE *pipe;
-  std::size_t max_size = (std::size_t)((22.0 * (double)(D[2])) *
-                                       (std::size_t)(4.1 * (double)(D[2]))) +
-                         1;
-  std::size_t mmap_max_vector_size = max_size + max_size + max_size;
-  int err = py_init(p_sharedmemory_struct, shared_dArray, semph_ptr, pipe,
-                    mmap_max_vector_size);
-  std::cout << "exit of py_init" << std::endl;
-  if (err != 0) {
-    print_err("main.cpp", "Failed to initialize py_action");
   }
 
   // ----------- Run the 3 simulations -----------
@@ -133,32 +116,10 @@ int main() {
     };
 
     State state;
-    // int stable = lattice_bolzmann_solver(state, gridsize, grid, LBM,
-    //                                      initial_condition_preset);
+    int stable = lattice_bolzmann_solver(state, gridsize, grid, sim_time, LBM,
+                                         initial_condition_preset);
 
-    initial_condition(state, gridsize, grid, nu, rho_0, u_0[i]);
     Eigen::ArrayXXd curl = curlZ(state.ux, state.uy, gridsize, dr);
-
-    // ----------- plot the results -----------
-    // err = py_figure(pipe, i, std::array<double, 2>{10, 6});
-    // if (err != 0) {
-    //   print_err("main.cpp", "Failed to execute figure python figure");
-    // }
-    // err = py_print(pipe, shared_dArray, gridsize, curl);
-    // if (err != 0) {
-    //   print_err("main.cpp", "Failed to execute print python action");
-    // }
-    // err = py_pcolor(pipe, shared_dArray, i, gridsize, grid, curl);
-    err = py_pcolor(pipe, shared_dArray, semph_ptr, i, gridsize, grid,
-                    (state.ux + state.uy).sqrt());
-    if (err != 0) {
-      print_err("main.cpp", "Failed to execute figure python action");
-    }
-  }
-
-  err = py_clean(p_sharedmemory_struct, pipe, shared_dArray, semph_ptr);
-  if (err != 0) {
-    print_err("main.cpp", "Failed to clean up python action");
   }
 
   return 0;

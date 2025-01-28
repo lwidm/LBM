@@ -1,10 +1,11 @@
 #include "helpers.h"
-#include "Eigen/src/Core/Array.h"
 #include <cerrno>
 #include <cstddef>
 #include <cstring>
 #include <iostream>
 #include <string.h>
+
+static std::string filename = "helpers.cpp";
 
 /**
  * \brief Generates a 2D meshgrid from the provided grid vectors.
@@ -26,7 +27,7 @@ Grid meshgrid(const Gridsize &gridsize, const GridVectors &gridvectors) {
   const std::size_t Nx = gridsize[0];
   const std::size_t Ny = gridsize[1];
   if (gridsize[2] != 1) {
-    print_err("helpers.cpp", "meshgrid function only implemented for 2D grids");
+    LOG_ERR(filename, "meshgrid function only implemented for 2D grids");
     return Grid();
   }
   const Eigen::ArrayXd x = gridvectors.x;
@@ -71,7 +72,7 @@ Eigen::ArrayXXd curlZ(const Eigen::ArrayXXd &ux, const Eigen::ArrayXXd &uy,
   const std::size_t Nx = gridsize[0];
   const std::size_t Ny = gridsize[1];
   if (gridsize[2] != 1) {
-    print_err("helpers.cpp", "curlZ does only supports 2D grids");
+    LOG_ERR(filename, "curlZ does only supports 2D grids");
     return Eigen::ArrayXXd();
   }
   const double dx = dr;
@@ -104,6 +105,28 @@ void print_err(std::string filename, std::string message) {
   // size_t errmsglen = 94;
   // char errmsg[errmsglen];
   // strerror_s(errmsg, errmsglen, errno);
-  std::cout << "ERROR <" << filename << ">: [" << strerror(errno)
-            << "(error number: " << errno << ")] " << message;
+  std::cerr << "ERROR <" << filename << ">: [" << strerror(errno)
+            << "(error number: " << errno << ")] " << message << std::endl;
+}
+
+void log(std::string filename, std::string message, Log_level log_level) {
+  if (log_level > LOG_LEVEL) {
+    return;
+  }
+  switch (log_level) {
+  case LOG_LEVEL_OFF:
+    break;
+  case LOG_LEVEL_ERR:
+    print_err(filename, message);
+    break;
+  case LOG_LEVEL_WRN:
+    std::cout << "WARNING <" << filename << ">: " << message << std::endl;
+    break;
+  case LOG_LEVEL_INF:
+    std::cout << "INFO <" << filename << ">: " << message << std::endl;
+    break;
+  case LOG_LEVEL_DBG:
+    std::cout << "DEBUG <" << filename << ">: " << message << std::endl;
+    break;
+  }
 }

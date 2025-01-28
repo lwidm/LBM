@@ -1,5 +1,7 @@
 #include "analytical.h"
 
+static std::string filename = "analytical.cpp";
+
 /**
  * \brief Provides the analytical solution to a 2D Poiseuille flow.
  *
