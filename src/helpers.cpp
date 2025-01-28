@@ -109,6 +109,36 @@ void print_err(std::string filename, std::string message) {
             << "(error number: " << errno << ")] " << message << std::endl;
 }
 
+/**
+ * \brief Logs messages to the console or error handler based on the log level.
+ *
+ * This function logs messages with varying severity levels to the console
+ * or an error handler depending on the provided log level. If the log level
+ * is greater than the globally defined `LOG_LEVEL`, the message will not be
+ * logged.
+ *
+ * \param[in] filename The name of the file from which the log message
+ * originates.
+ * \param[in] message The log message to be displayed or handled.
+ * \param[in] log_level The severity level of the log message (e.g., error,
+ * warning, info, debug).
+ *
+ * The log levels and their corresponding behavior are:
+ * - \c LOG_LEVEL_OFF: No logging.
+ * - \c LOG_LEVEL_ERR: Logs errors to the console with the prefix "ERROR" using
+ * the `print_err` function.
+ * - \c LOG_LEVEL_WRN: Logs warnings to the console with the prefix "WARNING".
+ * - \c LOG_LEVEL_INF: Logs informational messages to the console with the
+ * prefix "INFO".
+ * - \c LOG_LEVEL_DBG: Logs debug messages to the console with the prefix
+ * "DEBUG".
+ *
+ * \see LOG_LEVEL: Global log level.
+ * \see Log_level: Different kinds of log levels.
+ * \see log: Logging function.
+ * \see print_err: Function for printing errors.
+ *
+ */
 void log(std::string filename, std::string message, Log_level log_level) {
   if (log_level > LOG_LEVEL) {
     return;

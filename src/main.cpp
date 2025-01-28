@@ -59,9 +59,10 @@ void initial_condition(State &state, const Gridsize &gridsize, const Grid &grid,
  * \return true if the entire simulation was run for the specified sim_time,
  * false if it terminated early.
  *
- * \details The function returns false if the simulation terminates early due to
- * reasons such as instability, convergence, or other case-specific user set
- * conditions.
+ * \details The function returns false if the simulation terminates early. Early
+ * termination are implementation specific and depend on the users
+ * implementation. For e.g. one may want the function to terminate early if the
+ * simulation becomes unstable or convergences.
  */
 int lattice_bolzmann_solver(
     State &state, const Gridsize &gridsize, const Grid &grid,
@@ -79,7 +80,8 @@ int lattice_bolzmann_solver(
  * the simulation parameters according to their specific needs, run the
  * simulation and save/postprocess the results.
  *
- * \return 0 if the simulation runs successfully, a non-zero value otherwise.
+ * \return 0 if the program completed without (critical) errors, a non-zero
+ * value otherwise.
  *
  */
 int main() {

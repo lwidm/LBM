@@ -12,6 +12,26 @@
 
 static std::string this_filename = "export_data.cpp";
 
+/**
+ * \brief Saves a 2D Eigen matrix to a binary file.
+ *
+ * This function saves an Eigen matrix to a specified binary file. If the file
+ * already exists and the save flag is not set to FORCE, the user is prompted
+ * to confirm overwriting the file.
+ *
+ * \param[in] array The Eigen matrix to be saved.
+ * \param[in] output_filename The name of the output file.
+ * \param[in] save_flag The flag indicating whether to force overwrite.
+ *
+ * \return 0 if the matrix is saved successfully, 1 if an error occurs.
+ *
+ * **Warning**: Eigen uses column-major ordering by default so this function
+ * saves using column-major ordering. Many programs (including NumPy in
+ * Python) use row-major ordering by default.
+ *
+ * \see load_eigen_matrix: Python function to load an Eigen matrix from a binary
+ * file
+ */
 int save_eigen_matrix(const Eigen::ArrayXXd &array,
                       const std::string &output_filename, SaveFlag save_flag) {
 
@@ -52,6 +72,15 @@ int save_eigen_matrix(const Eigen::ArrayXXd &array,
   return 0;
 }
 
+/**
+ * \brief Converts metadata to a JSON string.
+ *
+ * This function converts a metadata map to a JSON string format.
+ *
+ * \param[in] metadata The metadata map to be converted.
+ *
+ * \return A JSON string representation of the metadata.
+ */
 std::string metadata_map_to_json(const MetaData &metadata) {
   std::ostringstream oss;
   oss << "{\n";
@@ -76,6 +105,18 @@ std::string metadata_map_to_json(const MetaData &metadata) {
   return oss.str();
 }
 
+/**
+ * \brief Creates a new save directory and saves the simulations metadata to it.
+ *
+ * This function creates a new save directory for the simulation and saves
+ * the metadata as a JSON file in the directory.
+ *
+ * \param[in] sim_dir The name of the simulation directory.
+ * \param[in] metadata The metadata to be saved in the directory.
+ *
+ * \return 0 if the directory and metadata file are created successfully, 1 if
+ * an error occurs.
+ */
 int create_new_save_dir(const std::string &sim_dir, const MetaData &metadata) {
   std::filesystem::create_directory(sim_dir);
   std::string metadata_json = metadata_map_to_json(metadata);
@@ -91,6 +132,20 @@ int create_new_save_dir(const std::string &sim_dir, const MetaData &metadata) {
   return 0;
 }
 
+/**
+ * \brief Initializes the save directory for the simulation.
+ *
+ * This function initializes the save directory for a simulation. If the
+ * directory already exists and the save flag is not set to FORCE, the user is
+ * prompted to confirm removal of the existing directory.
+ *
+ * \param[in] sim_name The name of the simulation.
+ * \param[in] metadata The metadata for the simulation.
+ * \param[in] save_flag The flag indicating whether to force remove existing
+ * directory.
+ *
+ * \return 0 if the directory is initialized successfully, 1 if an error occurs.
+ */
 int init_save_dir(const std::string &sim_name, MetaData metadata,
                   SaveFlag save_flag) {
   std::filesystem::create_directory(OUTPUT_DIR);
@@ -121,6 +176,23 @@ int init_save_dir(const std::string &sim_name, MetaData metadata,
   return 0;
 }
 
+/**
+ * \brief Saves the state of the simulation.
+ *
+ * This function saves the state of the simulation at a specific time step.
+ * The state includes matrices for density (rho) and velocity components (ux,
+ * uy).
+ *
+ * \param[in] sim_name The name of the simulation.
+ * \param[in] state The state of the simulation to be saved.
+ * \param[in] gridsize The size of the simulation grid.
+ * \param[in] grid The grid of the simulation.
+ * \param[in] sim_time The simulation time at which the state is saved.
+ * \param[in] save_flag The flag indicating whether to force overwrite existing
+ * files.
+ *
+ * \return 0 if the state is saved successfully, 1 if an error occurs.
+ */
 int save_state(const std::string &sim_name, State state, Gridsize gridsize,
                Grid grid, double sim_time, SaveFlag save_flag) {
 
