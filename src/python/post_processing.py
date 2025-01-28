@@ -1,4 +1,5 @@
 import numpy as np
+import matplotlib.pyplot as plt
 
 # from numpy.typing import NDArray
 # from typing import Tuple
@@ -100,6 +101,13 @@ def load_eigen_matrix(filename: str, order: str = "F") -> arrayXXd:
 
 
 def main() -> int:
+    ux_file: str = "../../output/test2/ux_t=1.0000e+03.bin"
+    ux = load_eigen_matrix(ux_file)
+    uy_file: str = "../../output/test2/uy_t=1.0000e+03.bin"
+    uy = load_eigen_matrix(uy_file)
+    mag = np.sqrt(ux**2 + uy**2)
+    plt.pcolor(mag)
+    plt.show()
     return 0
 
 

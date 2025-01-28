@@ -1,12 +1,14 @@
 #include "main.h"
 #include "analytical.h"
+#include "export_data.h"
 #include "helpers.h"
 
 #include <array>
 #include <cstddef>
 #include <functional>
+#include <sstream>
 
-static std::string filename = "main.cpp";
+static std::string this_filename = "main.cpp";
 
 /**
  * \brief Initializes the state variables for the lattice Boltzmann simulation.
@@ -120,7 +122,26 @@ int main() {
                                          initial_condition_preset);
 
     Eigen::ArrayXXd curl = curlZ(state.ux, state.uy, gridsize, dr);
+
+    MetaData metadata;
+    std::ostringstream oss;
+    oss << "test" << i;
+    std::string sim_name = oss.str();
+    int err;
+    err = init_save_dir(sim_name, metadata, CONFIRM);
+    if (err != 0) {
+      LOG_ERR(this_filename, "Createing new save failed");
+    }
+    err = save_state(sim_name, state, gridsize, grid, sim_time, CONFIRM);
+    if (err != 0) {
+      LOG_ERR(this_filename, "Saving state failed");
+    }
   }
+
+  LOG_ERR(this_filename, "Test ERR");
+  LOG_WRN(this_filename, "Test WRN");
+  LOG_INF(this_filename, "Test INF");
+  LOG_DBG(this_filename, "Test DBG");
 
   return 0;
 }

@@ -10,12 +10,17 @@ add_executable(
   ${PROJECT_NAME}
   ${CMAKE_CURRENT_SOURCE_DIR}/src/main.cpp
   ${CMAKE_CURRENT_SOURCE_DIR}/src/analytical.cpp
-  ${CMAKE_CURRENT_SOURCE_DIR}/src/helpers.cpp)
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/helpers.cpp
+  ${CMAKE_CURRENT_SOURCE_DIR}/src/export_data.cpp)
 
 # Python Files set(PYTHON_DIR "${CMAKE_SOURCE_DIR}/src/python")
 # file(TO_CMAKE_PATH "${PYTHON_DIR}" PYTHON_DIR)
 # target_compile_definitions(${PROJECT_NAME} PRIVATE
 # PYTHON_DIR=\"${PYTHON_DIR}\")
+
+set(OUTPUT_DIR "${CMAKE_SOURCE_DIR}/output")
+file(TO_CMAKE_PATH "${OUTPUT_DIR}" OUTPUT_DIR)
+target_compile_definitions(${PROJECT_NAME} PRIVATE OUTPUT_DIR=\"${OUTPUT_DIR}\")
 
 if(CMAKE_CXX_COMPILER_ID STREQUAL "MSVC")
   message(
@@ -28,10 +33,18 @@ else()
     PRE_BUILD
     COMMAND
       ${CMAKE_COMMAND} -E copy_if_different
-      ${CMAKE_BINARY_DIR}/compile_commands.json
-      ${CMAKE_SOURCE_DIR}/compile_commands.json)
+      "${CMAKE_BINARY_DIR}/compile_commands.json"
+      "${CMAKE_SOURCE_DIR}/compile_commands.json")
   add_custom_command(
     TARGET ${PROJECT_NAME}
     PRE_BUILD
-    COMMAND ${CMAKE_COMMAND} -E touch ${CMAKE_BINARY_DIR}/.gitignore)
+    COMMAND ${CMAKE_COMMAND} -E touch "${CMAKE_BINARY_DIR}/.gitignore"
+    COMMAND ${CMAKE_COMMAND} -E echo "*" > "${CMAKE_BINARY_DIR}/.gitignore")
 endif()
+
+add_custom_command(
+  TARGET ${PROJECT_NAME}
+  POST_BUILD
+  COMMAND ${CMAKE_COMMAND} -E make_directory "${OUTPUT_DIR}"
+  COMMAND ${CMAKE_COMMAND} -E copy_if_different
+          "${CMAKE_BINARY_DIR}/.gitignore" "${OUTPUT_DIR}/.gitignore")

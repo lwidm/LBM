@@ -1,20 +1,26 @@
 [
 {
   "directory": "C:/Users/lukas/Documents/04_projects/LBM/build",
-  "command": "C:\\Strawberry\\c\\bin\\c++.exe -IC:/Users/lukas/Documents/04_projects/LBM/include -std=gnu++17 -o CMakeFiles\\LBM.dir\\src\\main.cpp.obj -c C:\\Users\\lukas\\Documents\\04_projects\\LBM\\src\\main.cpp",
+  "command": "C:\\Strawberry\\c\\bin\\c++.exe -DOUTPUT_DIR=\\\"C:/Users/lukas/Documents/04_projects/LBM/output\\\" -IC:/Users/lukas/Documents/04_projects/LBM/include -std=gnu++17 -o CMakeFiles\\LBM.dir\\src\\main.cpp.obj -c C:\\Users\\lukas\\Documents\\04_projects\\LBM\\src\\main.cpp",
   "file": "C:\\Users\\lukas\\Documents\\04_projects\\LBM\\src\\main.cpp",
   "output": "CMakeFiles\\LBM.dir\\src\\main.cpp.obj"
 },
 {
   "directory": "C:/Users/lukas/Documents/04_projects/LBM/build",
-  "command": "C:\\Strawberry\\c\\bin\\c++.exe -IC:/Users/lukas/Documents/04_projects/LBM/include -std=gnu++17 -o CMakeFiles\\LBM.dir\\src\\analytical.cpp.obj -c C:\\Users\\lukas\\Documents\\04_projects\\LBM\\src\\analytical.cpp",
+  "command": "C:\\Strawberry\\c\\bin\\c++.exe -DOUTPUT_DIR=\\\"C:/Users/lukas/Documents/04_projects/LBM/output\\\" -IC:/Users/lukas/Documents/04_projects/LBM/include -std=gnu++17 -o CMakeFiles\\LBM.dir\\src\\analytical.cpp.obj -c C:\\Users\\lukas\\Documents\\04_projects\\LBM\\src\\analytical.cpp",
   "file": "C:\\Users\\lukas\\Documents\\04_projects\\LBM\\src\\analytical.cpp",
   "output": "CMakeFiles\\LBM.dir\\src\\analytical.cpp.obj"
 },
 {
   "directory": "C:/Users/lukas/Documents/04_projects/LBM/build",
-  "command": "C:\\Strawberry\\c\\bin\\c++.exe -IC:/Users/lukas/Documents/04_projects/LBM/include -std=gnu++17 -o CMakeFiles\\LBM.dir\\src\\helpers.cpp.obj -c C:\\Users\\lukas\\Documents\\04_projects\\LBM\\src\\helpers.cpp",
+  "command": "C:\\Strawberry\\c\\bin\\c++.exe -DOUTPUT_DIR=\\\"C:/Users/lukas/Documents/04_projects/LBM/output\\\" -IC:/Users/lukas/Documents/04_projects/LBM/include -std=gnu++17 -o CMakeFiles\\LBM.dir\\src\\helpers.cpp.obj -c C:\\Users\\lukas\\Documents\\04_projects\\LBM\\src\\helpers.cpp",
   "file": "C:\\Users\\lukas\\Documents\\04_projects\\LBM\\src\\helpers.cpp",
   "output": "CMakeFiles\\LBM.dir\\src\\helpers.cpp.obj"
+},
+{
+  "directory": "C:/Users/lukas/Documents/04_projects/LBM/build",
+  "command": "C:\\Strawberry\\c\\bin\\c++.exe -DOUTPUT_DIR=\\\"C:/Users/lukas/Documents/04_projects/LBM/output\\\" -IC:/Users/lukas/Documents/04_projects/LBM/include -std=gnu++17 -o CMakeFiles\\LBM.dir\\src\\export_data.cpp.obj -c C:\\Users\\lukas\\Documents\\04_projects\\LBM\\src\\export_data.cpp",
+  "file": "C:\\Users\\lukas\\Documents\\04_projects\\LBM\\src\\export_data.cpp",
+  "output": "CMakeFiles\\LBM.dir\\src\\export_data.cpp.obj"
 }
 ]
