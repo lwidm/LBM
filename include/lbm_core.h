@@ -4,6 +4,8 @@
 #include "Eigen/Dense"
 #include "main.h"
 
+#include <string>
+
 const unsigned int D_ = D;
 const unsigned int Q_ = Q;
 
@@ -64,8 +66,9 @@ typedef enum {
 } SolverType;
 
 int lattice_bolzmann_simulation(
-    State &state, const Gridsize &gridsize, const Grid &grid, const double &nu,
-    const unsigned int &sim_time, const SolverType &solver,
+    State &state, const std::string &sim_name, const Gridsize &gridsize,
+    const Grid &grid, const double nu, const unsigned int sim_time,
+    const SolverType solver,
     std::function<void(State &, const Gridsize &, const Grid &)>
         initial_condition);
 

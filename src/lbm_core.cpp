@@ -4,7 +4,6 @@
 
 #include <array>
 #include <iostream>
-#include <string>
 
 const std::string this_filename = "lbm_core.cpp";
 
@@ -55,7 +54,7 @@ void compute_macroscopic_variables(State &state, const Gridsize &gridsize,
                                    const std::array<Eigen::ArrayXXd, Q> &f,
                                    const std::array<double, Q> &cxs,
                                    const std::array<double, Q> &cys,
-                                   const double &cs) {
+                                   const double cs) {
   state.rho = Eigen::ArrayXXd::Zero(gridsize[1], gridsize[0]);
   state.ux = Eigen::ArrayXXd::Zero(gridsize[1], gridsize[0]);
   state.uy = Eigen::ArrayXXd::Zero(gridsize[1], gridsize[0]);
@@ -103,8 +102,9 @@ void compute_macroscopic_variables(State &state, const Gridsize &gridsize,
  * simulation becomes unstable or convergences.
  */
 int lattice_bolzmann_simulation(
-    State &state, const Gridsize &gridsize, const Grid &grid, const double &nu,
-    const unsigned int &sim_time, const SolverType &solver,
+    State &state, const std::string &sim_name, const Gridsize &gridsize,
+    const Grid &grid, const double nu, const unsigned int sim_time,
+    const SolverType solver,
     std::function<void(State &, const Gridsize &, const Grid &)>
         initial_condition) {
 
@@ -146,7 +146,7 @@ int lattice_bolzmann_simulation(
   f = feq;
 
   if (save_output) {
-    if (save_state("taylor green", "num_", state, gridsize, grid, (double)0,
+    if (save_state(sim_name, "num_", state, gridsize, grid, (double)0,
                    CONFIRM) != 0) {
       LOG_ERR(this_filename, "Saving state failed");
       return 1;
@@ -167,7 +167,7 @@ int lattice_bolzmann_simulation(
     compute_macroscopic_variables(state, gridsize, f, cxs, cys, cs);
 
     if (save_output && t % output_freq == 0) {
-      if (save_state("taylor green", "num_", state, gridsize, grid, (double)t,
+      if (save_state(sim_name, "num_", state, gridsize, grid, (double)t,
                      CONFIRM) != 0) {
         LOG_ERR(this_filename, "Saving state failed");
         return 1;

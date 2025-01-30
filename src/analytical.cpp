@@ -26,9 +26,9 @@ static std::string filename = "analytical.cpp";
  * \see initial_condition
  */
 void analytical_Poiseuille(State &state, const Gridsize &gridsize,
-                           const Grid &grid, const double &nu,
-                           const double &rho_0, const double &u_0,
-                           const double &p_0) {
+                           const Grid &grid, const double nu,
+                           const double rho_0, const double u_0,
+                           const double p_0) {
   const double Fx_val =
       12.0 * rho_0 * u_0 * nu / ((double)(gridsize[1]) * (double)(gridsize[1]));
   Eigen::ArrayXXd Fx =
@@ -62,9 +62,8 @@ void analytical_Poiseuille(State &state, const Gridsize &gridsize,
  * \see initial_condition
  */
 void initCond_TaylorGreen(State &state, const Gridsize &gridsize,
-                          const Grid &grid, const double &nu,
-                          const double &rho_0, const double &u_0,
-                          const double &p_0) {
+                          const Grid &grid, const double nu, const double rho_0,
+                          const double u_0, const double p_0) {
   const double L = std::min(gridsize[0], gridsize[1]);
   state.rho = Eigen::ArrayXXd::Constant(gridsize[1], gridsize[0], rho_0);
   state.ux =
@@ -98,9 +97,9 @@ void initCond_TaylorGreen(State &state, const Gridsize &gridsize,
  * \see initial_condition
  */
 void analytical_TaylorGreen(State &state, const Gridsize &gridsize,
-                            const Grid &grid, const double &nu,
-                            const double &rho_0, const double &u_0,
-                            const double &p_0, const double &t_prime) {
+                            const Grid &grid, const double nu,
+                            const double rho_0, const double u_0,
+                            const double p_0, const double t_prime) {
   const double L = std::min(gridsize[0], gridsize[1]);
   const double Re = u_0 * L / nu;
   initCond_TaylorGreen(state, gridsize, grid, nu, rho_0, u_0, p_0);

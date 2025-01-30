@@ -1,5 +1,4 @@
 #include "main.h"
-#include "Eigen/src/Core/Array.h"
 #include "analytical.h"
 #include "export_data.h"
 #include "helpers.h"
@@ -7,7 +6,9 @@
 
 #include <array>
 #include <cstddef>
+#include <iomanip>
 #include <sstream>
+#include <string>
 
 static std::string this_filename = "main.cpp";
 
@@ -31,10 +32,101 @@ static std::string this_filename = "main.cpp";
  * \param[in] p_0 The initial pressure inside the domain (a scalar).
  */
 void initial_condition(State &state, const Gridsize &gridsize, const Grid &grid,
-                       const double &nu, const double &rho_0, const double &u_0,
-                       const double &p_0) {
+                       const double nu, const double rho_0, const double u_0,
+                       const double p_0) {
   // analytical_Poiseuille(state, gridsize, grid, nu, rho_0, u_0, p_0);
   initCond_TaylorGreen(state, gridsize, grid, nu, rho_0, u_0, p_0);
+}
+
+/**
+ * \brief Creates a metadata object for a simulation and stores it in a map.
+ *
+ * This function generates metadata for a simulation and stores it in a
+ * `MetaData` map. The metadata includes essential information such as the
+ * simulation ID, name, description and other parameters
+ *
+ * The function uses `std::ostringstream` to convert numerical values (e.g.,
+ * `double`, `int`) to strings with appropriate precision and formatting.
+ *
+ * \param[in,out] metadata The map where the metadata will be stored.
+ * \param[in] id The unique identifier for the simulation.
+ * \param[in] sim_name The name of the simulation.
+ * \param[in] description A brief description of the simulation.
+ * \param[in] ... Additional parameters, including:
+ *
+ * \see MetaData: The map type to store metadata
+ */
+void create_metadata(MetaData &metadata, const unsigned int id,
+                     const std::string &sim_name,
+                     const std::string &description, const Gridsize &gridsize,
+                     const double nu, const double rho_0, const double u_0,
+                     const double p_0, const SolverType solver,
+                     const std::string initial_condition) {
+
+  std::ostringstream oss_int;
+
+  std::ostringstream oss_double;
+  oss_double << std::setprecision(8) << std::defaultfloat;
+
+  oss_int << id;
+  metadata["id"] = oss_int.str();
+  oss_int.clear();
+  oss_int.str("");
+
+  metadata["sim_name"] = "\"" + sim_name + "\"";
+
+  metadata["description"] = "\"" + description + "\"";
+
+  oss_int << gridsize[0];
+  metadata["Nx"] = oss_int.str();
+  oss_int.clear();
+  oss_int.str("");
+
+  oss_int << gridsize[1];
+  metadata["Ny"] = oss_int.str();
+  oss_int.clear();
+  oss_int.str("");
+
+  oss_int << gridsize[2];
+  metadata["Nz"] = oss_int.str();
+  oss_int.clear();
+  oss_int.str("");
+
+  oss_double << nu;
+  metadata["nu"] = oss_double.str();
+  oss_double.clear();
+  oss_double.str("");
+
+  oss_double << rho_0;
+  metadata["rho_0"] = oss_double.str();
+  oss_double.clear();
+  oss_double.str("");
+
+  oss_double << u_0;
+  metadata["u_0"] = oss_double.str();
+  oss_double.clear();
+  oss_double.str("");
+
+  oss_double << p_0;
+  metadata["p_0"] = oss_double.str();
+  oss_double.clear();
+  oss_double.str("");
+
+  std::string solver_string;
+  switch (solver) {
+  case LBM:
+    solver_string = "LBM";
+    break;
+  case LBM_EXACT_DIFFERENCE:
+    solver_string = "LBM exact difference";
+    break;
+  case KBC:
+    solver_string = "KBC";
+    break;
+  }
+  metadata["solver"] = solver_string;
+
+  metadata["initial condition"] = initial_condition;
 }
 
 /**
@@ -62,18 +154,9 @@ int main() {
   const double L = 128;
   const double nu = u_0 * L / Re;
   const unsigned int sim_time = (unsigned int)(t_prime * L / u_0);
+  const SolverType solver = LBM;
 
   // // ----------- Run the 3 simulations -----------
-
-  MetaData metadata;
-  std::ostringstream oss;
-  oss << "taylor green";
-  std::string sim_name = oss.str();
-  int err;
-  err = init_save_dir(sim_name, metadata, CONFIRM);
-  if (err != 0) {
-    LOG_ERR(this_filename, "Createing new save failed");
-  }
 
   // for (std::size_t i = 0; i < 3; ++i) {
 
@@ -90,6 +173,19 @@ int main() {
   gridvectors.y = Eigen::ArrayXd::LinSpaced(Ny, dr / 2, Ny * dr);
   Grid grid = meshgrid(gridsize, gridvectors);
 
+  MetaData metadata;
+  std::string sim_name = "2D_Taylor_Green";
+  std::string description =
+      "A standard LBM simulation of a 2D Taylor Green flow. Since the "
+      "analytical solution of a Taylor Green flow is know this can be used to "
+      "calculate the simulations' error.";
+  std::string initial_condition_string = "2D Taylor Green";
+  create_metadata(metadata, 1, sim_name, description, gridsize, nu, rho_0, u_0,
+                  p_0, solver, initial_condition_string);
+  if (init_save_dir(sim_name, metadata, grid, CONFIRM) != 0) {
+    LOG_ERR(this_filename, "Creating new save failed");
+  }
+
   auto initial_condition_preset = [&nu, &rho_0, &u_0,
                                    &p_0](State &state, const Gridsize &gridsize,
                                          const Grid &grid) {
@@ -97,15 +193,16 @@ int main() {
   };
 
   State state;
-  int stable = lattice_bolzmann_simulation(state, gridsize, grid, nu, sim_time,
-                                           LBM, initial_condition_preset);
+  int stable =
+      lattice_bolzmann_simulation(state, sim_name, gridsize, grid, nu, sim_time,
+                                  solver, initial_condition_preset);
 
   Eigen::ArrayXXd curl = curlZ(state.ux, state.uy, gridsize, dr);
 
   State analytical_state;
   analytical_TaylorGreen(analytical_state, gridsize, grid, nu, rho_0, u_0, p_0,
                          t_prime);
-  if (save_state("taylor green", "ana_", analytical_state, gridsize, grid,
+  if (save_state(sim_name, "ana_", analytical_state, gridsize, grid,
                  (double)sim_time, CONFIRM) != 0) {
     LOG_ERR(this_filename, "Saving state failed");
     return 1;

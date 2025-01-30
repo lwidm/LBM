@@ -217,9 +217,24 @@ def extract_time_from_filename(filename: str) -> float:
 
 
 ##
-# \brief Plot a series of numpy arrays
+# \brief Plot a time series of 2D numpy arrays using pcolor.
+#
+# This function plots a sequence of 2D numpy arrays as a time series using `pcolor` from `matplotlib`.
+# Each array is plotted sequentially, with a pause between frames to create an animation-like effect.
+#
+# \param fig (Figure): The matplotlib figure to use for plotting (created with `plt.figure()`).
+# \param X (arrayXXd): The X grid (2D array filled with the x-values).
+# \param Y (arrayXXd): The Y grid (2D array filled with the y-values).
+# \param array_filenames (List[str]): A sorted (ascending in time) list of filnames corresponding to the simulation data.
+# \param arrays (List[arrayXXd]): A sorted (ascending in time) list arrays corresponding to the simulation data.
+# \param clim_ (Tuple[float, float]): The colorbar limits for the pcolor plot (min, max).
+# \param pause (float): The pause duratio (in seconds) between each frame to control the animation speed.
+#
+# \see extract_time_from_filename: Function to extract a floating point time from the data's filename
 def pcolor_numpy_series(
     fig: Figure,
+    X: arrayXXd,
+    Y: arrayXXd,
     array_filenames: List[str],
     arrays: List[arrayXXd],
     clim_: Tuple[float, float],
@@ -232,7 +247,7 @@ def pcolor_numpy_series(
             LOG_INF(this_filename, "plot closed before all states were plotted")
             return 0
         t: float = extract_time_from_filename(array_filenames[i])
-        plt.pcolor(arrays[i])
+        plt.pcolor(X, Y, arrays[i])
         plt.title(f"time = {t}/{t_end}")
         plt.clim(clim_[0], clim_[1])
         plt.colorbar()
@@ -244,8 +259,10 @@ def pcolor_numpy_series(
 ##
 # \brief Entry point of the `post_precessing.py` file
 def main() -> int:
-    directory: str = OUTPUT_DIR + "/taylor green"
-    print(directory)
+    directory: str = OUTPUT_DIR + "/2D_Taylor_Green"
+
+    X: arrayXXd = load_eigen_matrix(directory + "/X.bin")
+    Y: arrayXXd = load_eigen_matrix(directory + "/Y.bin")
 
     ux_files: List[str] = sorted(
         glob.glob(directory + "/num_ux_t=*.bin"), key=extract_time_from_filename
@@ -270,7 +287,7 @@ def main() -> int:
     uy: arrayXXd
     max_mag: float = 0
     plt.ion()
-    mag_arrays: List = []
+    mag_arrays: List = [None] * len(ux_files)
     for i in np.arange(len(ux_files)):
         ux = load_eigen_matrix(ux_files[i])
         uy = load_eigen_matrix(uy_files[i])
@@ -278,7 +295,7 @@ def main() -> int:
         max_mag = np.max([max_mag, np.max(mag_arrays[i])])
 
     fig = plt.figure()
-    pcolor_numpy_series(fig, ux_files, mag_arrays, (0, max_mag), 0.1)
+    pcolor_numpy_series(fig, X, Y, ux_files, mag_arrays, (0, max_mag), 0.1)
 
     ux = load_eigen_matrix(ux_files[-1])
     uy = load_eigen_matrix(uy_files[-1])
@@ -291,7 +308,7 @@ def main() -> int:
     plt.figure()
     mag_ana = np.sqrt(ux_ana**2, uy_ana**2)
     max_mag = np.max([max_mag, np.max(mag_ana)])
-    plt.pcolor(mag_ana)
+    plt.pcolor(X, Y, mag_ana)
     plt.title(f"analytical, time = {t}/{max_time}")
     plt.clim(0, max_mag)
     plt.colorbar()
@@ -300,7 +317,7 @@ def main() -> int:
     plt.figure()
     mag_ana = np.sqrt((ux_ana - ux) ** 2, (uy_ana - uy) ** 2)
     max_mag = np.max([max_mag, np.max(mag_ana)])
-    plt.pcolor(mag_ana)
+    plt.pcolor(X, Y, mag_ana)
     plt.title(f"error = {t}/{max_time}")
     plt.colorbar()
     plt.show()

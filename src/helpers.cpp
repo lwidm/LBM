@@ -18,7 +18,7 @@ static std::string filename = "helpers.cpp";
  * \param[in] message A custom message describing the context or details of the
  * error.
  */
-void print_err(std::string filename, std::string message) {
+void print_err(const std::string &filename, const std::string &message) {
   // size_t errmsglen = strerrorlen_s(errno) + 1;
   // size_t errmsglen = 94;
   // char errmsg[errmsglen];
@@ -57,7 +57,8 @@ void print_err(std::string filename, std::string message) {
  * \see print_err: Function for printing errors.
  *
  */
-void log(std::string filename, std::string message, Log_level log_level) {
+void log(const std::string &filename, const std::string &message,
+         const Log_level log_level) {
   if (log_level > LOG_LEVEL) {
     return;
   }

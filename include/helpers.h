@@ -55,7 +55,8 @@ typedef enum {
  */
 #define LOG_LEVEL LOG_LEVEL_DBG
 
-void log(std::string filename, std::string message, Log_level log_level);
+void log(const std::string &filename, const std::string &message,
+         const Log_level log_level);
 
 /**
  * \def LOG_ERR(filename, message)

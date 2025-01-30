@@ -34,7 +34,8 @@ static std::string this_filename = "export_data.cpp";
  * file
  */
 int save_eigen_matrix(const Eigen::ArrayXXd &array,
-                      const std::string &output_filename, SaveFlag save_flag) {
+                      const std::string &output_filename,
+                      const SaveFlag save_flag) {
 
   if (std::filesystem::exists(output_filename)) {
     LOG_WRN(this_filename,
@@ -89,18 +90,10 @@ std::string metadata_map_to_json(const MetaData &metadata) {
   for (const auto &[key, value] : metadata) {
     if (!first) {
       oss << ",\n";
+    } else {
+      first = false;
     }
-    first = false;
-    std::visit(
-        [&oss](auto &&arg) {
-          if constexpr (std::is_same_v<std::decay_t<decltype(arg)>, double>) {
-            oss << arg;
-          } else if constexpr (std::is_same_v<std::decay_t<decltype(arg)>,
-                                              std::string>) {
-            oss << "\"" << arg << "\"";
-          }
-        },
-        value);
+    oss << "\"" << key << "\": " << value;
   }
   oss << "\n}";
   return oss.str();
@@ -147,8 +140,8 @@ int create_new_save_dir(const std::string &sim_dir, const MetaData &metadata) {
  *
  * \return 0 if the directory is initialized successfully, 1 if an error occurs.
  */
-int init_save_dir(const std::string &sim_name, MetaData metadata,
-                  SaveFlag save_flag) {
+int init_save_dir(const std::string &sim_name, const MetaData &metadata,
+                  const Grid grid, const SaveFlag save_flag) {
   std::filesystem::create_directory(OUTPUT_DIR);
   std::string sim_dir = OUTPUT_DIR + std::string("/") + sim_name;
 
@@ -172,6 +165,8 @@ int init_save_dir(const std::string &sim_name, MetaData metadata,
     std::filesystem::remove_all(sim_dir);
   }
   create_new_save_dir(sim_dir, metadata);
+  save_eigen_matrix(grid.X, sim_dir + "/X.bin", save_flag);
+  save_eigen_matrix(grid.Y, sim_dir + "/Y.bin", save_flag);
   return 0;
 }
 
@@ -201,9 +196,9 @@ int init_save_dir(const std::string &sim_name, MetaData metadata,
  * => analytical_ux_t=2.0000e+02.bin, analytical_uy_t=2.0000e+02.bin, etc.
  */
 int save_state(const std::string &sim_name,
-               const std::string &additional_string, State state,
-               Gridsize gridsize, Grid grid, double sim_time,
-               SaveFlag save_flag) {
+               const std::string &additional_string, const State state,
+               const Gridsize gridsize, const Grid grid, const double sim_time,
+               const SaveFlag save_flag) {
 
   std::filesystem::create_directory(OUTPUT_DIR);
   std::string sim_dir = OUTPUT_DIR + std::string("/") + sim_name;

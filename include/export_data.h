@@ -6,7 +6,6 @@
 #include "Eigen/Dense"
 #include <map>
 #include <string>
-#include <variant>
 
 #include "lbm_core.h"
 
@@ -19,7 +18,7 @@
  * string.
  * \todo reference to MetaData creation function
  */
-typedef std::map<std::string, std::variant<double, std::string>> MetaData;
+typedef std::map<std::string, std::string> MetaData;
 
 /**
  * \enum SaveFlag
@@ -37,11 +36,12 @@ typedef enum {
   CONFIRM /**< Prompt the user to confirm before overwriting existing files. */
 } SaveFlag;
 
-int init_save_dir(const std::string &sim_name, MetaData metadata,
-                  SaveFlag save_flag);
+int init_save_dir(const std::string &sim_name, const MetaData &metadata,
+                  const Grid grid, const SaveFlag save_flag);
+
 int save_state(const std::string &sim_name,
-               const std::string &additional_string, State state,
-               Gridsize gridsize, Grid grid, double sim_time,
-               SaveFlag save_flag);
+               const std::string &additional_string, const State state,
+               const Gridsize gridsize, const Grid grid, const double sim_time,
+               const SaveFlag save_flag);
 
 #endif // EXPORT_DATA_H
