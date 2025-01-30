@@ -1,16 +1,20 @@
+#!/usr/bin/env python3
+
 import numpy as np
 import matplotlib.pyplot as plt
+from matplotlib.figure import Figure
 from enum import Enum
 import re
 import glob
-import time
 
 # from numpy.typing import NDArray
-from typing import List
+from typing import List, Tuple
 
 arrayXXXd = np.ndarray[tuple[int, int, int], np.dtype[np.float64]]
 arrayXXd = np.ndarray[tuple[int, int], np.dtype[np.float64]]
 arrayXd = np.ndarray[tuple[int], np.dtype[np.float64]]
+
+OUTPUT_DIR = "@OUTPUT_DIR@"
 
 
 ## Defines the various log levels for logging messages.
@@ -213,9 +217,35 @@ def extract_time_from_filename(filename: str) -> float:
 
 
 ##
+# \brief Plot a series of numpy arrays
+def pcolor_numpy_series(
+    fig: Figure,
+    array_filenames: List[str],
+    arrays: List[arrayXXd],
+    clim_: Tuple[float, float],
+    pause: float,
+) -> int:
+    t_end: float = extract_time_from_filename(array_filenames[-1])
+    for i in np.arange(len(arrays)):
+        plt.clf()
+        if not plt.fignum_exists(fig.number):
+            LOG_INF(this_filename, "plot closed before all states were plotted")
+            return 0
+        t: float = extract_time_from_filename(array_filenames[i])
+        plt.pcolor(arrays[i])
+        plt.title(f"time = {t}/{t_end}")
+        plt.clim(clim_[0], clim_[1])
+        plt.colorbar()
+        plt.draw()
+        plt.pause(pause)
+    return 0
+
+
+##
 # \brief Entry point of the `post_precessing.py` file
 def main() -> int:
-    directory: str = "../../output/taylor green"
+    directory: str = OUTPUT_DIR + "/taylor green"
+    print(directory)
 
     ux_files: List[str] = sorted(
         glob.glob(directory + "/num_ux_t=*.bin"), key=extract_time_from_filename
@@ -240,23 +270,16 @@ def main() -> int:
     uy: arrayXXd
     max_mag: float = 0
     plt.ion()
-    fig = plt.figure()
+    mag_arrays: List = []
     for i in np.arange(len(ux_files)):
-        plt.clf()
-        if not plt.fignum_exists(fig.number):
-            LOG_INF(this_filename, "plot closed before all states were plotted")
-            return 0
         ux = load_eigen_matrix(ux_files[i])
         uy = load_eigen_matrix(uy_files[i])
-        t: float = extract_time_from_filename(ux_files[i])
-        mag = np.sqrt(ux**2, uy**2)
-        max_mag = np.max([max_mag, np.max(mag)])
-        plt.pcolor(mag)
-        plt.title(f"time = {t}/{max_time}")
-        plt.clim(0, max_mag)
-        plt.colorbar()
-        plt.draw()
-        plt.pause(0.05)
+        mag_arrays[i] = np.sqrt(ux**2, uy**2)
+        max_mag = np.max([max_mag, np.max(mag_arrays[i])])
+
+    fig = plt.figure()
+    pcolor_numpy_series(fig, ux_files, mag_arrays, (0, max_mag), 0.1)
+
     ux = load_eigen_matrix(ux_files[-1])
     uy = load_eigen_matrix(uy_files[-1])
 

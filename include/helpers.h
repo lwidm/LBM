@@ -7,7 +7,8 @@
 #define _USE_MATH_DEFINES
 
 #include "Eigen/Dense"
-#include "main.h"
+#include "lbm_core.h"
+
 /**
  * \enum Log_level
  * \brief Defines the various log levels for logging messages.

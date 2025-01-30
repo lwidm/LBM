@@ -4,7 +4,7 @@
 #define _USE_MATH_DEFINES
 
 #include "Eigen/Dense"
-#include "main.h"
+#include "lbm_core.h"
 
 void analytical_Poiseuille(State &state, const Gridsize &gridsize,
                            const Grid &grid, const double &nu,

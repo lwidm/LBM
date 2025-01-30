@@ -1,0 +1,8 @@
+#ifndef PROJECT_CONFIG_H
+#define PROJECT_CONFIG_H
+
+// clang-format off
+#define OUTPUT_DIR "@OUTPUT_DIR@"
+// clang-format on
+
+#endif // !PROJECT_CONFIG_H

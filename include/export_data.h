@@ -8,7 +8,7 @@
 #include <string>
 #include <variant>
 
-#include "main.h"
+#include "lbm_core.h"
 
 /**
  * \typedef MetaData
