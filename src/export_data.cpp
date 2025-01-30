@@ -42,7 +42,7 @@ int save_eigen_matrix(const Eigen::ArrayXXd &array,
     if (save_flag != FORCE) {
       char choice;
       std::cout << "The save state file \"" << output_filename
-                << "\" already exists. Do you want to overwrite it? (y/n): ";
+                << "\" already exists.\nDo you want to overwrite it? (y/n): ";
       std::cin >> choice;
 
       if (choice != 'y') {
@@ -154,12 +154,10 @@ int init_save_dir(const std::string &sim_name, MetaData metadata,
   if (std::filesystem::exists(sim_dir)) {
     LOG_WRN(this_filename,
             "Output directory for current simulation already exists.");
-    if (save_flag == FORCE) {
-      std::filesystem::remove_all(sim_dir);
-    } else {
+    if (save_flag != FORCE) {
       char choice;
       std::cout << "The direcotry \"" << sim_dir
-                << "\" already exists. Do you want to remove it? (y/n): ";
+                << "\" already exists.\nDo you want to remove it? (y/n): ";
       std::cin >> choice;
       if (choice != 'y') {
         std::ostringstream oss;
@@ -169,8 +167,8 @@ int init_save_dir(const std::string &sim_name, MetaData metadata,
         LOG_ERR("this_filename", oss.str());
         return 1;
       }
-      std::filesystem::remove_all(sim_dir);
     }
+    std::filesystem::remove_all(sim_dir);
   }
   create_new_save_dir(sim_dir, metadata);
   return 0;
@@ -179,11 +177,9 @@ int init_save_dir(const std::string &sim_name, MetaData metadata,
 /**
  * \brief Saves the state of the simulation.
  *
- * This function saves the state of the simulation at a specific time step.
- * The state includes matrices for density (rho) and velocity components (ux,
- * uy).
- *
  * \param[in] sim_name The name of the simulation.
+ * \param[in] additional_string A string that gets added to the start of the
+ * filenames (often one leaves this empty "")
  * \param[in] state The state of the simulation to be saved.
  * \param[in] gridsize The size of the simulation grid.
  * \param[in] grid The grid of the simulation.
@@ -192,29 +188,45 @@ int init_save_dir(const std::string &sim_name, MetaData metadata,
  * files.
  *
  * \return 0 if the state is saved successfully, 1 if an error occurs.
+ *
+ * This function saves the state of the simulation at a specific time step.
+ * The state includes matrices for density (rho) and velocity components (ux,
+ * uy). It saves files in the format
+ * \<additional_string\>\<state_variable\>_t=X.XXXXe+XX.bin
+ *
+ * Example:
+ * - additional_string = "analytical_"
+ * - sim_time = 200
+ * => analytical_ux_t=2.0000e+02.bin, analytical_uy_t=2.0000e+02.bin, etc.
  */
-int save_state(const std::string &sim_name, State state, Gridsize gridsize,
-               Grid grid, double sim_time, SaveFlag save_flag) {
+int save_state(const std::string &sim_name,
+               const std::string &additional_string, State state,
+               Gridsize gridsize, Grid grid, double sim_time,
+               SaveFlag save_flag) {
 
   std::filesystem::create_directory(OUTPUT_DIR);
   std::string sim_dir = OUTPUT_DIR + std::string("/") + sim_name;
 
   std::ostringstream oss;
-  oss << std::scientific << std::setprecision(4) << std::setw(8) << sim_time;
+  oss << std::scientific << std::setprecision(6) << std::setw(10) << sim_time;
   std::string time_str = oss.str();
   int err;
-  err = save_eigen_matrix(state.rho, sim_dir + "/rho_t=" + time_str + ".bin",
+  err = save_eigen_matrix(state.rho,
+                          sim_dir + "/" + additional_string +
+                              "rho_t=" + time_str + ".bin",
                           save_flag);
   if (err != 0) {
     LOG_ERR(this_filename, "Failed to save \"state.rho\".");
   }
-  err = save_eigen_matrix(state.ux, sim_dir + "/ux_t=" + time_str + ".bin",
-                          save_flag);
+  err = save_eigen_matrix(
+      state.ux, sim_dir + "/" + additional_string + "ux_t=" + time_str + ".bin",
+      save_flag);
   if (err != 0) {
     LOG_ERR(this_filename, "Failed to save \"state.ux\".");
   }
-  err = save_eigen_matrix(state.uy, sim_dir + "/uy_t=" + time_str + ".bin",
-                          save_flag);
+  err = save_eigen_matrix(
+      state.uy, sim_dir + "/" + additional_string + "uy_t=" + time_str + ".bin",
+      save_flag);
   if (err != 0) {
     LOG_ERR(this_filename, "Failed to save \"state.uy\".");
   }

@@ -3,6 +3,9 @@
 
 #define __STDC_WANT_LIB_EXT1__ 1
 #define __STDC_LIB_EXT1__
+
+#define _USE_MATH_DEFINES
+
 #include "Eigen/Dense"
 #include "main.h"
 /**
@@ -118,6 +121,67 @@ void log(std::string filename, std::string message, Log_level log_level);
  * \see log: Logging function.
  */
 #define LOG_DBG(filename, message) log(filename, message, LOG_LEVEL_DBG)
+
+/**
+ * \brief Performs a circular roll operation on a 2D Eigen matrix (similar to
+ * numpy.roll).
+ *
+ * This function shifts the elements of a 2D Eigen array along its rows and
+ * columns. Positive shift values move elements in the right/down direction,
+ * while negative values move them in the left/up direction. The shift is
+ * performed circularly, meaning elements shifted off one end will reappear at
+ * the other end.
+ *
+ * \param[in, out] array The 2D Eigen array to be shifted. The array is modified
+ * in place.
+ * \param[in] gridsize A array with the gridsize of the simulation in the format
+ * [Nx, Ny, Nz]
+ * \param[in] row_shift The number of positions to shift the rows. Positive
+ * values shift downward, and negative values shift upward. The shift is
+ * circular.
+ * \param[in] col_shift The number of positions to shift the columns. Positive
+ * values shift to the right, and negative values shift to the left. The shift
+ * is circular.
+ *
+ * \note The shift is performed in place, meaning the input array is modified
+ * directly.
+ */
+template <typename T>
+void roll2D(Eigen::Array<T, Eigen::Dynamic, Eigen::Dynamic> &array,
+            const Gridsize &gridsize, int row_shift, int col_shift) {
+  const int cols = static_cast<int>(gridsize[0]);
+  const int rows = static_cast<int>(gridsize[1]);
+
+  // Handle row shift
+  row_shift = (row_shift % rows + rows) % rows;
+  if (row_shift != 0) {
+    Eigen::Array<T, Eigen::Dynamic, Eigen::Dynamic> tmp =
+        array.bottomRows(row_shift);
+    if (row_shift * 2 < rows) {
+      // Here aliasing occurs
+      array.bottomRows(rows - row_shift) =
+          array.topRows(rows - row_shift).eval();
+    } else {
+      array.bottomRows(rows - row_shift) = array.topRows(rows - row_shift);
+    }
+    array.topRows(row_shift) = tmp;
+  }
+
+  // Handle column shift
+  col_shift = (col_shift % cols + cols) % cols;
+  if (col_shift != 0) {
+    Eigen::Array<T, Eigen::Dynamic, Eigen::Dynamic> tmp =
+        array.rightCols(col_shift);
+    if (col_shift * 2 < cols) {
+      // here aliasing occurs
+      array.rightCols(cols - col_shift) =
+          array.leftCols(cols - col_shift).eval();
+    } else {
+      array.rightCols(cols - col_shift) = array.leftCols(cols - col_shift);
+    }
+    array.leftCols(col_shift) = tmp;
+  }
+}
 
 Grid meshgrid(const Gridsize &gridsize, const GridVectors &gridvectors);
 

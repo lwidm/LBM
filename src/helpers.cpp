@@ -8,6 +8,78 @@
 static std::string filename = "helpers.cpp";
 
 /**
+ * \brief Prints an error message to the standard output.
+ *
+ * This function prints an error message to the standard output, including the
+ * file name, a description of the error based on the current value of `errno`,
+ * and a custom message.
+ *
+ * \param[in] filename The name of the file where the error occurred.
+ * \param[in] message A custom message describing the context or details of the
+ * error.
+ */
+void print_err(std::string filename, std::string message) {
+  // size_t errmsglen = strerrorlen_s(errno) + 1;
+  // size_t errmsglen = 94;
+  // char errmsg[errmsglen];
+  // strerror_s(errmsg, errmsglen, errno);
+  std::cerr << "ERROR <" << filename << ">: [" << strerror(errno)
+            << "(error number: " << errno << ")] " << message << std::endl;
+}
+
+/**
+ * \brief Logs messages to the console or error handler based on the log level.
+ *
+ * This function logs messages with varying severity levels to the console
+ * or an error handler depending on the provided log level. If the log level
+ * is greater than the globally defined `LOG_LEVEL`, the message will not be
+ * logged.
+ *
+ * \param[in] filename The name of the file from which the log message
+ * originates.
+ * \param[in] message The log message to be displayed or handled.
+ * \param[in] log_level The severity level of the log message (e.g., error,
+ * warning, info, debug).
+ *
+ * The log levels and their corresponding behavior are:
+ * - \c LOG_LEVEL_OFF: No logging.
+ * - \c LOG_LEVEL_ERR: Logs errors to the console with the prefix "ERROR" using
+ * the `print_err` function.
+ * - \c LOG_LEVEL_WRN: Logs warnings to the console with the prefix "WARNING".
+ * - \c LOG_LEVEL_INF: Logs informational messages to the console with the
+ * prefix "INFO".
+ * - \c LOG_LEVEL_DBG: Logs debug messages to the console with the prefix
+ * "DEBUG".
+ *
+ * \see LOG_LEVEL: Global log level.
+ * \see Log_level: Different kinds of log levels.
+ * \see log: Logging function.
+ * \see print_err: Function for printing errors.
+ *
+ */
+void log(std::string filename, std::string message, Log_level log_level) {
+  if (log_level > LOG_LEVEL) {
+    return;
+  }
+  switch (log_level) {
+  case LOG_LEVEL_OFF:
+    break;
+  case LOG_LEVEL_ERR:
+    print_err(filename, message);
+    break;
+  case LOG_LEVEL_WRN:
+    std::cout << "WARNING <" << filename << ">: " << message << std::endl;
+    break;
+  case LOG_LEVEL_INF:
+    std::cout << "INFO <" << filename << ">: " << message << std::endl;
+    break;
+  case LOG_LEVEL_DBG:
+    std::cout << "DEBUG <" << filename << ">: " << message << std::endl;
+    break;
+  }
+}
+
+/**
  * \brief Generates a 2D meshgrid from the provided grid vectors.
  *
  * This function creates 2D meshgrid arrays for the X and Y coordinates based on
@@ -87,76 +159,4 @@ Eigen::ArrayXXd curlZ(const Eigen::ArrayXXd &ux, const Eigen::ArrayXXd &uy,
     }
   }
   return curl;
-}
-
-/**
- * \brief Prints an error message to the standard output.
- *
- * This function prints an error message to the standard output, including the
- * file name, a description of the error based on the current value of `errno`,
- * and a custom message.
- *
- * \param[in] filename The name of the file where the error occurred.
- * \param[in] message A custom message describing the context or details of the
- * error.
- */
-void print_err(std::string filename, std::string message) {
-  // size_t errmsglen = strerrorlen_s(errno) + 1;
-  // size_t errmsglen = 94;
-  // char errmsg[errmsglen];
-  // strerror_s(errmsg, errmsglen, errno);
-  std::cerr << "ERROR <" << filename << ">: [" << strerror(errno)
-            << "(error number: " << errno << ")] " << message << std::endl;
-}
-
-/**
- * \brief Logs messages to the console or error handler based on the log level.
- *
- * This function logs messages with varying severity levels to the console
- * or an error handler depending on the provided log level. If the log level
- * is greater than the globally defined `LOG_LEVEL`, the message will not be
- * logged.
- *
- * \param[in] filename The name of the file from which the log message
- * originates.
- * \param[in] message The log message to be displayed or handled.
- * \param[in] log_level The severity level of the log message (e.g., error,
- * warning, info, debug).
- *
- * The log levels and their corresponding behavior are:
- * - \c LOG_LEVEL_OFF: No logging.
- * - \c LOG_LEVEL_ERR: Logs errors to the console with the prefix "ERROR" using
- * the `print_err` function.
- * - \c LOG_LEVEL_WRN: Logs warnings to the console with the prefix "WARNING".
- * - \c LOG_LEVEL_INF: Logs informational messages to the console with the
- * prefix "INFO".
- * - \c LOG_LEVEL_DBG: Logs debug messages to the console with the prefix
- * "DEBUG".
- *
- * \see LOG_LEVEL: Global log level.
- * \see Log_level: Different kinds of log levels.
- * \see log: Logging function.
- * \see print_err: Function for printing errors.
- *
- */
-void log(std::string filename, std::string message, Log_level log_level) {
-  if (log_level > LOG_LEVEL) {
-    return;
-  }
-  switch (log_level) {
-  case LOG_LEVEL_OFF:
-    break;
-  case LOG_LEVEL_ERR:
-    print_err(filename, message);
-    break;
-  case LOG_LEVEL_WRN:
-    std::cout << "WARNING <" << filename << ">: " << message << std::endl;
-    break;
-  case LOG_LEVEL_INF:
-    std::cout << "INFO <" << filename << ">: " << message << std::endl;
-    break;
-  case LOG_LEVEL_DBG:
-    std::cout << "DEBUG <" << filename << ">: " << message << std::endl;
-    break;
-  }
 }

@@ -1,14 +1,19 @@
 #include "main.h"
+#include "Eigen/src/Core/Array.h"
 #include "analytical.h"
 #include "export_data.h"
 #include "helpers.h"
 
 #include <array>
+#include <cmath>
 #include <cstddef>
 #include <functional>
+#include <iostream>
 #include <sstream>
 
 static std::string this_filename = "main.cpp";
+const unsigned int D = 2;
+const unsigned int Q = 9;
 
 /**
  * \brief Initializes the state variables for the lattice Boltzmann simulation.
@@ -27,11 +32,76 @@ static std::string this_filename = "main.cpp";
  * \param[in] nu The kinematic viscosity of the fluid.
  * \param[in] rho_0 The initial density of the fluid.
  * \param[in] u_0 The characteristic velocity of the flow.
+ * \param[in] p_0 The initial pressure inside the domain (a scalar).
  */
 void initial_condition(State &state, const Gridsize &gridsize, const Grid &grid,
-                       const double &nu, const double &rho_0,
-                       const double &u_0) {
-  analytical_Poiseuille(state, gridsize, grid, nu, rho_0, nu);
+                       const double &nu, const double &rho_0, const double &u_0,
+                       const double &p_0) {
+  // analytical_Poiseuille(state, gridsize, grid, nu, rho_0, u_0, p_0);
+  initCond_TaylorGreen(state, gridsize, grid, nu, rho_0, u_0, p_0);
+}
+
+/**
+ * \brief The streaming step of the Lattice Baltzmann method
+ *
+ * This function applies the streaming to the populations f. To determine in
+ * which direction every population f[i] should be streamed the vecotors csx and
+ * csy are used. f cxs and cys are array of length Q where Q is the number of
+ * populations in the simulation (e.g. D2Q9 -> Q = 9, D1Q3 -> Q = 3). The
+ * cirshift function is used for this computation.
+ *
+ * \param[in, out] f The populations to be shifted
+ * \param[in] gridsize The size of the grid in the format [Nx, Ny, Nz] (Nz = 1)
+ * \param[in] cxs The x component in which each population f[i] should be
+ * streamed
+ * \param[in] cys The y component in which each population f[i] should be
+ * streamed
+ *
+ * \see circshift: Cirshift operation on Eigen Arrays
+ */
+void streaming_step(std::array<Eigen::ArrayXXd, Q> &f, const Gridsize &gridsize,
+                    const std::array<double, Q> &cxs,
+                    const std::array<double, Q> &cys) {
+  for (unsigned int i = 1; i < Q; ++i) {
+    roll2D(f[i], gridsize, cys[i], cxs[i]);
+  }
+}
+
+/**
+ * \brief Compute macroscopic variables (e.g. rho, ux, uy, uz, P) from the
+ * populations f
+ *
+ * This function computes the macroscopic variables rho, ux, uy and uz from the
+ * populations f
+ *
+ * \param[in, out] state The state of the simulations which is a struct that
+ * hold the arrays for rho, ux, uy, uz and P (i.e. the state)
+ * \param[in] f The current population distribution of the simulation
+ * \param[in] gridsize The size of the grid in the format [Nx, Ny, Nz] (Nz = 1)
+ * \param[in] cxs The x component of the grid velocities associated with each
+ * f[i]
+ * \param[in] cys The y component of the grid velocities associated with each
+ * f[i]
+ * \param[in] cs The lattice speed of sound
+ */
+void compute_macroscopic_variables(State &state, const Gridsize &gridsize,
+                                   const std::array<Eigen::ArrayXXd, Q> &f,
+                                   const std::array<double, Q> &cxs,
+                                   const std::array<double, Q> &cys,
+                                   const double &cs) {
+  state.rho = Eigen::ArrayXXd::Zero(gridsize[1], gridsize[0]);
+  state.ux = Eigen::ArrayXXd::Zero(gridsize[1], gridsize[0]);
+  state.uy = Eigen::ArrayXXd::Zero(gridsize[1], gridsize[0]);
+  state.P = Eigen::ArrayXXd::Zero(gridsize[1], gridsize[0]);
+  for (unsigned int i = 0; i < Q; ++i) {
+    state.rho += f[i];
+    state.ux += cxs[i] * f[i];
+    state.uy += cys[i] * f[i];
+  }
+  state.ux = state.ux / state.rho;
+  state.uy = state.uy / state.rho;
+  // BUG : Not sure about pressure term
+  state.P = cs * cs + (state.ux * state.ux + state.uy * state.uy);
 }
 
 /**
@@ -49,6 +119,7 @@ void initial_condition(State &state, const Gridsize &gridsize, const Grid &grid,
  * for 2D simulations).
  * \param[in] grid The grid object containing coordinate information (1D/2D/3D
  * arrays of X, X,Y, X,Y,Z depending on the simulation dimension).
+ * \param[in] nu The viscosity of the fluid
  * \param[in] sim_time The total simulation time for which the solver should
  * run.
  * \param[in] solver An enum representing the type of lattice Boltzmann solver
@@ -64,12 +135,80 @@ void initial_condition(State &state, const Gridsize &gridsize, const Grid &grid,
  * implementation. For e.g. one may want the function to terminate early if the
  * simulation becomes unstable or convergences.
  */
-int lattice_bolzmann_solver(
-    State &state, const Gridsize &gridsize, const Grid &grid,
+int lattice_bolzmann_simulation(
+    State &state, const Gridsize &gridsize, const Grid &grid, const double &nu,
     const unsigned int &sim_time, const SolverType &solver,
     std::function<void(State &, const Gridsize &, const Grid &)>
         initial_condition) {
+
+  // output definitions
+  const unsigned int output_freq = 20;
+  const bool save_output = true;
+  int err = 0;
+
+  // D2Q9 simulation
+  const unsigned int dr = 1; // BUG : Not sure if this should depend on grid
+  const unsigned int dt = 1; // BUG : Not sure if this should be an input
+  const double c = (double)dr / (double)dt;
+  const double cs = c / std::sqrt(3.);
+  const double beta = (double)dt / (2 * nu / (cs * cs) + (double)dt);
+
+  const std::array<double, Q> cxs = {0, 0, c, c, c, 0, -c, -c, -c};
+  const std::array<double, Q> cys = {0, c, c, 0, -c, -c, -c, 0, c};
+  const std::array<double, Q> weigths = {4. / 9,  1. / 9,  1. / 36,
+                                         1. / 9,  1. / 36, 1. / 9,
+                                         1. / 36, 1. / 9,  1. / 36};
+  auto feq_calc = [&cxs, &cys, &weigths, &c,
+                   &cs](std::array<Eigen::ArrayXXd, Q> &feq,
+                        const Eigen::ArrayXXd &rho, const Eigen::ArrayXXd &ux,
+                        const Eigen::ArrayXXd &uy) {
+    for (unsigned int i = 0; i < Q; ++i) {
+      feq[i] = rho * weigths[i] *
+               (1.0 + 3. * (cxs[i] * ux + cys[i] * uy) +
+                9. * (cxs[i] * ux + cys[i] * uy).square() / 2 -
+                3 * (ux.square() + uy.square()) / 2);
+    }
+  };
+
+  // Initial condition
   initial_condition(state, gridsize, grid);
+  std::array<Eigen::ArrayXXd, Q> f;
+  std::array<Eigen::ArrayXXd, Q> feq;
+  std::array<Eigen::ArrayXXd, Q> fmirr;
+  feq_calc(feq, state.rho, state.ux, state.uy);
+  f = feq;
+
+  if (save_output) {
+    if (save_state("taylor green", "num_", state, gridsize, grid, (double)0,
+                   CONFIRM) != 0) {
+      LOG_ERR(this_filename, "Saving state failed");
+      return 1;
+    }
+  }
+
+  for (unsigned int t = 1; t <= sim_time; ++t) {
+    // Collision step
+    feq_calc(feq, state.rho, state.ux, state.uy);
+    for (unsigned int i = 0; i < Q; ++i) {
+      fmirr[i] = 2 * feq[i] - f[i];
+      f[i] = (1 - beta) * f[i] + beta * fmirr[i];
+    }
+    // Streaming step
+    streaming_step(f, gridsize, cxs, cys);
+    // Boundary Condition
+    // Compute macroscopic variables
+    compute_macroscopic_variables(state, gridsize, f, cxs, cys, cs);
+
+    if (save_output && t % output_freq == 0) {
+      if (save_state("taylor green", "num_", state, gridsize, grid, (double)t,
+                     CONFIRM) != 0) {
+        LOG_ERR(this_filename, "Saving state failed");
+        return 1;
+      }
+    }
+    std::cout << "\r time: " << t << "/" << sim_time;
+  }
+
   return 0;
 }
 
@@ -86,64 +225,68 @@ int lattice_bolzmann_solver(
  */
 int main() {
   // ----------- flow setup -----------
-  double dr = 1;
-  double dt = 1;
-  double sim_time = 1000;
-  double rho_0 = 1;
-  double p_0 = rho_0 / 3;
-  double Re = 20;
-  double nu = 0.02;
-  std::array<std::size_t, 3> D = {12, 16, 20};
-  std::array<double, 3> u_0;
-  for (std::size_t i = 0; i < 3; ++i) {
-    u_0[i] = Re / (double)(D[i]) * nu;
+  const double dr = 1;
+  const double dt = 1;
+  // const unsigned int sim_time = 1000;
+  const double rho_0 = 1;
+  const double p_0 = rho_0 / 3;
+  const double Re = 100;
+  // const double nu = 0.064;
+  const double u_0 = 0.1;
+  const double t_prime = 2.5;
+  const double L = 128;
+  const double nu = u_0 * L / Re;
+  const unsigned int sim_time = (unsigned int)(t_prime * L / u_0);
+
+  // // ----------- Run the 3 simulations -----------
+
+  MetaData metadata;
+  std::ostringstream oss;
+  oss << "taylor green";
+  std::string sim_name = oss.str();
+  int err;
+  err = init_save_dir(sim_name, metadata, CONFIRM);
+  if (err != 0) {
+    LOG_ERR(this_filename, "Createing new save failed");
   }
 
-  // ----------- Run the 3 simulations -----------
-  for (std::size_t i = 0; i < 3; ++i) {
+  // for (std::size_t i = 0; i < 3; ++i) {
 
-    std::size_t Nx = 22 * D[i];
-    std::size_t Ny = (std::size_t)(4.1 * (double)(D[i]));
-    std::size_t Nz = 1;
+  // std::size_t Nx = 22 * D[i];
+  // std::size_t Ny = (std::size_t)(4.1 * (double)(D[i]));
+  std::size_t Nx = L;
+  std::size_t Ny = L;
+  std::size_t Nz = 1;
 
-    const Gridsize gridsize = std::array<std::size_t, 3>{Nx, Ny, Nz};
+  const Gridsize gridsize = std::array<std::size_t, 3>{Nx, Ny, Nz};
 
-    GridVectors gridvectors;
-    gridvectors.x = Eigen::ArrayXd::LinSpaced(Nx, dr / 2, Nx * dr);
-    gridvectors.y = Eigen::ArrayXd::LinSpaced(Ny, dr / 2, Ny * dr);
-    Grid grid = meshgrid(gridsize, gridvectors);
+  GridVectors gridvectors;
+  gridvectors.x = Eigen::ArrayXd::LinSpaced(Nx, dr / 2, Nx * dr);
+  gridvectors.y = Eigen::ArrayXd::LinSpaced(Ny, dr / 2, Ny * dr);
+  Grid grid = meshgrid(gridsize, gridvectors);
 
-    auto initial_condition_preset = [&nu, &rho_0, &u_0,
-                                     i](State &state, const Gridsize &gridsize,
-                                        const Grid &grid) {
-      initial_condition(state, gridsize, grid, nu, rho_0, u_0[i]);
-    };
+  auto initial_condition_preset = [&nu, &rho_0, &u_0,
+                                   &p_0](State &state, const Gridsize &gridsize,
+                                         const Grid &grid) {
+    initial_condition(state, gridsize, grid, nu, rho_0, u_0, p_0);
+  };
 
-    State state;
-    int stable = lattice_bolzmann_solver(state, gridsize, grid, sim_time, LBM,
-                                         initial_condition_preset);
+  State state;
+  int stable = lattice_bolzmann_simulation(state, gridsize, grid, nu, sim_time,
+                                           LBM, initial_condition_preset);
 
-    Eigen::ArrayXXd curl = curlZ(state.ux, state.uy, gridsize, dr);
+  Eigen::ArrayXXd curl = curlZ(state.ux, state.uy, gridsize, dr);
 
-    MetaData metadata;
-    std::ostringstream oss;
-    oss << "test" << i;
-    std::string sim_name = oss.str();
-    int err;
-    err = init_save_dir(sim_name, metadata, CONFIRM);
-    if (err != 0) {
-      LOG_ERR(this_filename, "Createing new save failed");
-    }
-    err = save_state(sim_name, state, gridsize, grid, sim_time, CONFIRM);
-    if (err != 0) {
-      LOG_ERR(this_filename, "Saving state failed");
-    }
+  State analytical_state;
+  analytical_TaylorGreen(analytical_state, gridsize, grid, nu, rho_0, u_0, p_0,
+                         t_prime);
+  if (save_state("taylor green", "ana_", analytical_state, gridsize, grid,
+                 (double)sim_time, CONFIRM) != 0) {
+    LOG_ERR(this_filename, "Saving state failed");
+    return 1;
   }
 
-  LOG_ERR(this_filename, "Test ERR");
-  LOG_WRN(this_filename, "Test WRN");
-  LOG_INF(this_filename, "Test INF");
-  LOG_DBG(this_filename, "Test DBG");
+  // }
 
   return 0;
 }

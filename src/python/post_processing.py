@@ -1,9 +1,12 @@
 import numpy as np
 import matplotlib.pyplot as plt
+from enum import Enum
+import re
+import glob
+import time
 
 # from numpy.typing import NDArray
-# from typing import Tuple
-from enum import Enum
+from typing import List
 
 arrayXXXd = np.ndarray[tuple[int, int, int], np.dtype[np.float64]]
 arrayXXd = np.ndarray[tuple[int, int], np.dtype[np.float64]]
@@ -40,7 +43,7 @@ class Log_level(Enum):
 LOG_LEVEL: Log_level = Log_level.LOG_LEVEL_DBG
 
 
-filename: str = "post_processing.py"
+this_filename: str = "post_processing.py"
 
 
 # %% %%%%%%%%%%%%%%%%%%%% Logging functions ####################
@@ -156,7 +159,8 @@ def load_eigen_vector(filename: str) -> arrayXd:
     return vector
 
 
-## \brief Loads an Eigen matrix from a binary file.
+##
+# \brief Loads an Eigen matrix from a binary file.
 # \param filename (str): The name of the file from which the Eigen matrix is to be loaded.
 # \param order (str, optional): The order in which the matrix should be reshaped. "C" for C-style (row-major), "F" for Fortran-style (column-major). Defaults to "F".
 #
@@ -191,17 +195,93 @@ def load_eigen_matrix(filename: str, order: str = "F") -> arrayXXd:
 # %% %%%%%%%%%%%%%%%%%%%% main block ####################
 
 
+##
+# \brief get a floating point time value from the data filename
+#
+# Extracts a floating point time value from the time values contained in the datas filename. E.g. "ux_t=03.300e+02.bin" would return "330"
+#
+# \param filename (str): The string of the filename to be processed
+def extract_time_from_filename(filename: str) -> float:
+    match = re.search(r"t=(\d+\.\d+e[+-]\d+)", filename)
+    time: float
+    if match:
+        time = float(match.group(1))
+    else:
+        time = -1
+        LOG_ERR(this_filename, f'No time string found in filename: "{filename}".')
+    return time
+
+
+##
+# \brief Entry point of the `post_precessing.py` file
 def main() -> int:
-    """
-    Entry point of the `post_processing.py` python file
-    """
-    ux_file: str = "../../output/test2/ux_t=1.0000e+03.bin"
-    ux = load_eigen_matrix(ux_file)
-    uy_file: str = "../../output/test2/uy_t=1.0000e+03.bin"
-    uy = load_eigen_matrix(uy_file)
-    mag = np.sqrt(ux**2 + uy**2)
-    plt.pcolor(mag)
+    directory: str = "../../output/taylor green"
+
+    ux_files: List[str] = sorted(
+        glob.glob(directory + "/num_ux_t=*.bin"), key=extract_time_from_filename
+    )
+    uy_files: List[str] = sorted(
+        glob.glob(directory + "/num_uy_t=*.bin"), key=extract_time_from_filename
+    )
+
+    if len(ux_files) != len(uy_files):
+        LOG_ERR(
+            this_filename,
+            f"the number of ux_files ({len(ux_files)}) and uy_files ({len(uy_files)}) aren't equal.",
+        )
+        return 1
+    if len(ux_files) == 0:
+        LOG_ERR(this_filename, "No ux_files and uy_files found.")
+        return 1
+
+    max_time: float = extract_time_from_filename(ux_files[-1])
+
+    ux: arrayXXd
+    uy: arrayXXd
+    max_mag: float = 0
+    plt.ion()
+    fig = plt.figure()
+    for i in np.arange(len(ux_files)):
+        plt.clf()
+        if not plt.fignum_exists(fig.number):
+            LOG_INF(this_filename, "plot closed before all states were plotted")
+            return 0
+        ux = load_eigen_matrix(ux_files[i])
+        uy = load_eigen_matrix(uy_files[i])
+        t: float = extract_time_from_filename(ux_files[i])
+        mag = np.sqrt(ux**2, uy**2)
+        max_mag = np.max([max_mag, np.max(mag)])
+        plt.pcolor(mag)
+        plt.title(f"time = {t}/{max_time}")
+        plt.clim(0, max_mag)
+        plt.colorbar()
+        plt.draw()
+        plt.pause(0.05)
+    ux = load_eigen_matrix(ux_files[-1])
+    uy = load_eigen_matrix(uy_files[-1])
+
+    ux_file_ana: str = glob.glob(directory + "/ana_ux_t=*.bin")[0]
+    uy_file_ana: str = glob.glob(directory + "/ana_uy_t=*.bin")[0]
+    ux_ana: arrayXXd = load_eigen_matrix(ux_file_ana)
+    uy_ana: arrayXXd = load_eigen_matrix(uy_file_ana)
+    t = extract_time_from_filename(ux_file_ana)
+    plt.figure()
+    mag_ana = np.sqrt(ux_ana**2, uy_ana**2)
+    max_mag = np.max([max_mag, np.max(mag_ana)])
+    plt.pcolor(mag_ana)
+    plt.title(f"analytical, time = {t}/{max_time}")
+    plt.clim(0, max_mag)
+    plt.colorbar()
+    plt.draw()
+
+    plt.figure()
+    mag_ana = np.sqrt((ux_ana - ux) ** 2, (uy_ana - uy) ** 2)
+    max_mag = np.max([max_mag, np.max(mag_ana)])
+    plt.pcolor(mag_ana)
+    plt.title(f"error = {t}/{max_time}")
+    plt.colorbar()
     plt.show()
+    input("press Enter to exit")
     return 0
 
 

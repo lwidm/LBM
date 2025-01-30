@@ -1,6 +1,8 @@
 #ifndef EXPORT_DATA_H
 #define EXPORT_DATA_H
 
+#define _USE_MATH_DEFINES
+
 #include "Eigen/Dense"
 #include <map>
 #include <string>
@@ -37,7 +39,9 @@ typedef enum {
 
 int init_save_dir(const std::string &sim_name, MetaData metadata,
                   SaveFlag save_flag);
-int save_state(const std::string &sim_name, State state, Gridsize gridsize,
-               Grid grid, double sim_time, SaveFlag save_flag);
+int save_state(const std::string &sim_name,
+               const std::string &additional_string, State state,
+               Gridsize gridsize, Grid grid, double sim_time,
+               SaveFlag save_flag);
 
 #endif // EXPORT_DATA_H

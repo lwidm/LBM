@@ -12,12 +12,13 @@ Welcome to my Lattice Boltzmann Method (LBM) Simulation Project! This project is
 - **Modular Design:** _Feature not yet implemented_: Create custom simulations by connecting various functions (initial conditions, boundary conditions, exit conditions, solver types) in a specific way using C++ code. This modular approach also allows for advanced tasks, such as running multiple simulations sequentially and performing error convergence studies.
 - **Simulation dimensions:** _Feature not yet implemented_: Choose between 1D, 2D, and 3D simulations.
 - **Solver types:**
-  - _Feature not yet implemented_: LBM
+  - LBM
   - _Feature not yet implemented_: KBC
   - _Feature not yet implemented_: LBM_exact_difference
 - **Analytical solutions / initial conditions:**
   - 2D Poisseuille flow with constant Fx (force)
-  - _Feature not yet implemented_: 2D and 3D Taylor Green
+  - 2D Taylor Green flow
+  - _Feature not yet implemented_: 3D Taylor Green flow
 - **High performance:** Efficient (I hope, just a mechanical engineer here ;) ) c++ code for computations.
 - **Versatile post-processing:** Python script to visualize simulation results.
 - \*\*Doxygen documentation

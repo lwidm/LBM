@@ -1,6 +1,8 @@
 #ifndef MAIN_H
 #define MAIN_H
 
+#define _USE_MATH_DEFINES
+
 #include "Eigen/Dense"
 
 /**
