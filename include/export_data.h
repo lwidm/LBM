@@ -41,7 +41,13 @@ int init_save_dir(const std::string &sim_name, const MetaData &metadata,
 
 int save_state(const std::string &sim_name,
                const std::string &additional_string, const State state,
-               const Gridsize gridsize, const Grid grid, const double sim_time,
-               const SaveFlag save_flag);
+               const double sim_time, const SaveFlag save_flag);
+
+void create_metadata(MetaData &metadata, const unsigned int id,
+                     const std::string &sim_name,
+                     const std::string &description, const Gridsize &gridsize,
+                     const double nu, const double rho_0, const double u_0,
+                     const double p_0, const SolverType solver,
+                     const std::string initial_condition);
 
 #endif // EXPORT_DATA_H

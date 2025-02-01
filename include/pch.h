@@ -1,0 +1,12 @@
+// pch.h
+#include "Eigen/Dense"
+#include <array>
+#include <cmath>
+#include <cstddef>
+#include <filesystem>
+#include <fstream>
+#include <iomanip>
+#include <iostream>
+#include <map>
+#include <sstream>
+#include <string>

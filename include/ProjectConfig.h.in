@@ -3,6 +3,10 @@
 
 // clang-format off
 #define OUTPUT_DIR "@OUTPUT_DIR@"
+#define USE_GOOGLE_PROFILER @USE_GOOGLE_PROFILER@
+#if USE_GOOGLE_PROFILER
+  #define GOOGLE_PROF
+#endif
 // clang-format on
 
 #endif // !PROJECT_CONFIG_H

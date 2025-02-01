@@ -5,7 +5,7 @@
 #include <iostream>
 #include <string.h>
 
-static std::string filename = "helpers.cpp";
+static std::string this_filename = "helpers.cpp";
 
 /**
  * \brief Prints an error message to the standard output.
@@ -90,8 +90,8 @@ void log(const std::string &filename, const std::string &message,
  * be 1).
  * \param[in] gridvectors The grid vectors containing the 1D arrays of x and y
  * coordinates.
- * \return A Grid struct containing the 2D meshgrid arrays for the X and Y
- * coordinates.
+ * \return grid A Grid struct containing the 2D meshgrid arrays for the X (,Y
+ * and Z) coordinates.
  *
  * \details Currently not implemented for 3D Arrays. This function will return
  * an error if Nz is not equal to 1.
@@ -100,7 +100,7 @@ Grid meshgrid(const Gridsize &gridsize, const GridVectors &gridvectors) {
   const std::size_t Nx = gridsize[0];
   const std::size_t Ny = gridsize[1];
   if (gridsize[2] != 1) {
-    LOG_ERR(filename, "meshgrid function only implemented for 2D grids");
+    LOG_ERR(this_filename, "meshgrid function only implemented for 2D grids");
     return Grid();
   }
   const Eigen::ArrayXd x = gridvectors.x;
@@ -145,7 +145,7 @@ Eigen::ArrayXXd curlZ(const Eigen::ArrayXXd &ux, const Eigen::ArrayXXd &uy,
   const std::size_t Nx = gridsize[0];
   const std::size_t Ny = gridsize[1];
   if (gridsize[2] != 1) {
-    LOG_ERR(filename, "curlZ does only supports 2D grids");
+    LOG_ERR(this_filename, "curlZ does only supports 2D grids");
     return Eigen::ArrayXXd();
   }
   const double dx = dr;

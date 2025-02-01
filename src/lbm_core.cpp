@@ -16,7 +16,7 @@ const std::string this_filename = "lbm_core.cpp";
  * populations in the simulation (e.g. D2Q9 -> Q = 9, D1Q3 -> Q = 3). The
  * cirshift function is used for this computation.
  *
- * \param[in, out] f The populations to be shifted
+ * \param[in,out] f The populations to be shifted
  * \param[in] gridsize The size of the grid in the format [Nx, Ny, Nz] (Nz = 1)
  * \param[in] cxs The x component in which each population f[i] should be
  * streamed
@@ -40,7 +40,7 @@ void streaming_step(std::array<Eigen::ArrayXXd, Q> &f, const Gridsize &gridsize,
  * This function computes the macroscopic variables rho, ux, uy and uz from the
  * populations f
  *
- * \param[in, out] state The state of the simulations which is a struct that
+ * \param[in,out] state The state of the simulations which is a struct that
  * hold the arrays for rho, ux, uy, uz and P (i.e. the state)
  * \param[in] f The current population distribution of the simulation
  * \param[in] gridsize The size of the grid in the format [Nx, Ny, Nz] (Nz = 1)
@@ -81,6 +81,8 @@ void compute_macroscopic_variables(State &state, const Gridsize &gridsize,
  *
  * \param[in,out] state The state object that holds the flow variables rho, ux,
  * (uy, uz) and P.
+ * \param[in] sim_name The name of the current simulation (used for exporting
+ * data)
  * \param[in] gridsize The size of the computational grid in Nx, Ny, Nz (Nz = 1
  * for 2D simulations).
  * \param[in] grid The grid object containing coordinate information (1D/2D/3D
@@ -104,14 +106,13 @@ void compute_macroscopic_variables(State &state, const Gridsize &gridsize,
 int lattice_bolzmann_simulation(
     State &state, const std::string &sim_name, const Gridsize &gridsize,
     const Grid &grid, const double nu, const unsigned int sim_time,
-    const SolverType solver,
+    [[maybe_unused]] const SolverType solver,
     std::function<void(State &, const Gridsize &, const Grid &)>
         initial_condition) {
 
   // output definitions
   const unsigned int output_freq = 20;
   const bool save_output = true;
-  int err = 0;
 
   // D2Q9 simulation
   const unsigned int dr = 1; // BUG : Not sure if this should depend on grid
@@ -125,10 +126,10 @@ int lattice_bolzmann_simulation(
   const std::array<double, Q> weigths = {4. / 9,  1. / 9,  1. / 36,
                                          1. / 9,  1. / 36, 1. / 9,
                                          1. / 36, 1. / 9,  1. / 36};
-  auto feq_calc = [&cxs, &cys, &weigths, &c,
-                   &cs](std::array<Eigen::ArrayXXd, Q> &feq,
-                        const Eigen::ArrayXXd &rho, const Eigen::ArrayXXd &ux,
-                        const Eigen::ArrayXXd &uy) {
+  auto feq_calc = [&cxs, &cys, &weigths](std::array<Eigen::ArrayXXd, Q> &feq,
+                                         const Eigen::ArrayXXd &rho,
+                                         const Eigen::ArrayXXd &ux,
+                                         const Eigen::ArrayXXd &uy) {
     for (unsigned int i = 0; i < Q; ++i) {
       feq[i] = rho * weigths[i] *
                (1.0 + 3. * (cxs[i] * ux + cys[i] * uy) +
@@ -146,8 +147,7 @@ int lattice_bolzmann_simulation(
   f = feq;
 
   if (save_output) {
-    if (save_state(sim_name, "num_", state, gridsize, grid, (double)0,
-                   CONFIRM) != 0) {
+    if (save_state(sim_name, "num_", state, (double)0, CONFIRM) != 0) {
       LOG_ERR(this_filename, "Saving state failed");
       return 1;
     }
@@ -167,8 +167,7 @@ int lattice_bolzmann_simulation(
     compute_macroscopic_variables(state, gridsize, f, cxs, cys, cs);
 
     if (save_output && t % output_freq == 0) {
-      if (save_state(sim_name, "num_", state, gridsize, grid, (double)t,
-                     CONFIRM) != 0) {
+      if (save_state(sim_name, "num_", state, (double)t, CONFIRM) != 0) {
         LOG_ERR(this_filename, "Saving state failed");
         return 1;
       }

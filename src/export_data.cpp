@@ -135,6 +135,8 @@ int create_new_save_dir(const std::string &sim_dir, const MetaData &metadata) {
  *
  * \param[in] sim_name The name of the simulation.
  * \param[in] metadata The metadata for the simulation.
+ * \param[in] grid A Grid struct containing the 2D meshgrid arrays for the X (,Y
+ * and Z) coordinates.
  * \param[in] save_flag The flag indicating whether to force remove existing
  * directory.
  *
@@ -177,8 +179,6 @@ int init_save_dir(const std::string &sim_name, const MetaData &metadata,
  * \param[in] additional_string A string that gets added to the start of the
  * filenames (often one leaves this empty "")
  * \param[in] state The state of the simulation to be saved.
- * \param[in] gridsize The size of the simulation grid.
- * \param[in] grid The grid of the simulation.
  * \param[in] sim_time The simulation time at which the state is saved.
  * \param[in] save_flag The flag indicating whether to force overwrite existing
  * files.
@@ -197,8 +197,7 @@ int init_save_dir(const std::string &sim_name, const MetaData &metadata,
  */
 int save_state(const std::string &sim_name,
                const std::string &additional_string, const State state,
-               const Gridsize gridsize, const Grid grid, const double sim_time,
-               const SaveFlag save_flag) {
+               const double sim_time, const SaveFlag save_flag) {
 
   std::filesystem::create_directory(OUTPUT_DIR);
   std::string sim_dir = OUTPUT_DIR + std::string("/") + sim_name;
@@ -228,4 +227,101 @@ int save_state(const std::string &sim_name,
   }
 
   return 0;
+}
+
+/**
+ * \brief Creates a metadata object for a simulation and stores it in a map.
+ *
+ * This function generates metadata for a simulation and stores it in a
+ * `MetaData` map. The metadata includes essential information such as the
+ * simulation ID, name, description and other parameters
+ *
+ * The function uses `std::ostringstream` to convert numerical values (e.g.,
+ * `double`, `int`) to strings with appropriate precision and formatting.
+ *
+ * \param[in,out] metadata The map where the metadata will be stored.
+ * \param[in] id The unique identifier for the simulation.
+ * \param[in] sim_name The name of the simulation.
+ * \param[in] description A brief description of the simulation.
+ * \param[in] gridsize
+ * \param[in] nu
+ * \param[in] rho_0
+ * \param[in] u_0
+ * \param[in] p_0
+ * \param[in] solver
+ * \param[in] initial_condition
+ *
+ * \see MetaData: The map type to store metadata
+ */
+void create_metadata(MetaData &metadata, const unsigned int id,
+                     const std::string &sim_name,
+                     const std::string &description, const Gridsize &gridsize,
+                     const double nu, const double rho_0, const double u_0,
+                     const double p_0, const SolverType solver,
+                     const std::string initial_condition) {
+
+  std::ostringstream oss_int;
+
+  std::ostringstream oss_double;
+  oss_double << std::setprecision(8) << std::defaultfloat;
+
+  oss_int << id;
+  metadata["id"] = oss_int.str();
+  oss_int.clear();
+  oss_int.str("");
+
+  metadata["sim_name"] = "\"" + sim_name + "\"";
+
+  metadata["description"] = "\"" + description + "\"";
+
+  oss_int << gridsize[0];
+  metadata["Nx"] = oss_int.str();
+  oss_int.clear();
+  oss_int.str("");
+
+  oss_int << gridsize[1];
+  metadata["Ny"] = oss_int.str();
+  oss_int.clear();
+  oss_int.str("");
+
+  oss_int << gridsize[2];
+  metadata["Nz"] = oss_int.str();
+  oss_int.clear();
+  oss_int.str("");
+
+  oss_double << nu;
+  metadata["nu"] = oss_double.str();
+  oss_double.clear();
+  oss_double.str("");
+
+  oss_double << rho_0;
+  metadata["rho_0"] = oss_double.str();
+  oss_double.clear();
+  oss_double.str("");
+
+  oss_double << u_0;
+  metadata["u_0"] = oss_double.str();
+  oss_double.clear();
+  oss_double.str("");
+
+  oss_double << p_0;
+  metadata["p_0"] = oss_double.str();
+  oss_double.clear();
+  oss_double.str("");
+
+  std::string solver_string;
+  switch (solver) {
+  case LBM:
+    solver_string = "LBM";
+    break;
+  case LBM_EXACT_DIFFERENCE:
+    solver_string = "LBM exact difference";
+    break;
+  case KBC:
+    solver_string = "KBC";
+    break;
+  }
+  metadata["solver"] = solver_string;
+
+  metadata["initial condition"] = initial_condition;
 }

@@ -50,7 +50,7 @@ typedef struct {
 typedef struct {
   Eigen::ArrayXXd X; ///< 2D grid array in the X-coordinate.
   Eigen::ArrayXXd Y; ///< 2D grid array in the Y-coordinate.
-  Eigen::ArrayXXd Z; ///< 2D grid array in the Z-coordinate.
+  // Eigen::ArrayXXd Z; ///< 2D grid array in the Z-coordinate.
 } Grid;
 
 /**

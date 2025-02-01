@@ -134,7 +134,7 @@ void log(const std::string &filename, const std::string &message,
  * performed circularly, meaning elements shifted off one end will reappear at
  * the other end.
  *
- * \param[in, out] array The 2D Eigen array to be shifted. The array is modified
+ * \param[in,out] array The 2D Eigen array to be shifted. The array is modified
  * in place.
  * \param[in] gridsize A array with the gridsize of the simulation in the format
  * [Nx, Ny, Nz]
