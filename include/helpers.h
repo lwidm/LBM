@@ -151,38 +151,40 @@ void log(const std::string &filename, const std::string &message,
 template <typename T>
 void roll2D(Eigen::Array<T, Eigen::Dynamic, Eigen::Dynamic> &array,
             const Gridsize &gridsize, int row_shift, int col_shift) {
-  const int cols = static_cast<int>(gridsize[0]);
-  const int rows = static_cast<int>(gridsize[1]);
+    const int cols = static_cast<int>(gridsize[0]);
+    const int rows = static_cast<int>(gridsize[1]);
 
-  // Handle row shift
-  row_shift = (row_shift % rows + rows) % rows;
-  if (row_shift != 0) {
-    Eigen::Array<T, Eigen::Dynamic, Eigen::Dynamic> tmp =
-        array.bottomRows(row_shift);
-    if (row_shift * 2 < rows) {
-      // Here aliasing occurs
-      array.bottomRows(rows - row_shift) =
-          array.topRows(rows - row_shift).eval();
-    } else {
-      array.bottomRows(rows - row_shift) = array.topRows(rows - row_shift);
+    // Handle row shift
+    row_shift = (row_shift % rows + rows) % rows;
+    if (row_shift != 0) {
+        Eigen::Array<T, Eigen::Dynamic, Eigen::Dynamic> tmp =
+            array.bottomRows(row_shift);
+        if (row_shift * 2 < rows) {
+            // Here aliasing occurs
+            array.bottomRows(rows - row_shift) =
+                array.topRows(rows - row_shift).eval();
+        } else {
+            array.bottomRows(rows - row_shift) =
+                array.topRows(rows - row_shift);
+        }
+        array.topRows(row_shift) = tmp;
     }
-    array.topRows(row_shift) = tmp;
-  }
 
-  // Handle column shift
-  col_shift = (col_shift % cols + cols) % cols;
-  if (col_shift != 0) {
-    Eigen::Array<T, Eigen::Dynamic, Eigen::Dynamic> tmp =
-        array.rightCols(col_shift);
-    if (col_shift * 2 < cols) {
-      // here aliasing occurs
-      array.rightCols(cols - col_shift) =
-          array.leftCols(cols - col_shift).eval();
-    } else {
-      array.rightCols(cols - col_shift) = array.leftCols(cols - col_shift);
+    // Handle column shift
+    col_shift = (col_shift % cols + cols) % cols;
+    if (col_shift != 0) {
+        Eigen::Array<T, Eigen::Dynamic, Eigen::Dynamic> tmp =
+            array.rightCols(col_shift);
+        if (col_shift * 2 < cols) {
+            // here aliasing occurs
+            array.rightCols(cols - col_shift) =
+                array.leftCols(cols - col_shift).eval();
+        } else {
+            array.rightCols(cols - col_shift) =
+                array.leftCols(cols - col_shift);
+        }
+        array.leftCols(col_shift) = tmp;
     }
-    array.leftCols(col_shift) = tmp;
-  }
 }
 
 Grid meshgrid(const Gridsize &gridsize, const GridVectors &gridvectors);

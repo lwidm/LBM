@@ -32,8 +32,9 @@ typedef std::map<std::string, std::string> MetaData;
  * - \c CONFIRM: Prompt the user to confirm before overwriting existing files.
  */
 typedef enum {
-  FORCE,  /**< Force overwrite existing files. */
-  CONFIRM /**< Prompt the user to confirm before overwriting existing files. */
+    FORCE,  /**< Force overwrite existing files. */
+    CONFIRM /**< Prompt the user to confirm before overwriting existing files.
+             */
 } SaveFlag;
 
 int init_save_dir(const std::string &sim_name, const MetaData &metadata,

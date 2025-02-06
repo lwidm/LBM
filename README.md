@@ -54,7 +54,7 @@ The following functions are not yet implemented and need to be completed by the 
   ```zsh
   cd ./build
   cmake .. -G Ninja -DCMAKE_BUILD_TYPE=Release
-  cmake --build -j8
+  cmake --build -j8 .
   ```
 
 - Windows (my windows system defaults to msvc so i don't have to specify the visual studio toochain)

@@ -21,7 +21,8 @@ add_executable(
   "${CMAKE_CURRENT_SOURCE_DIR}/src/lbm_core.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/analytical.cpp"
   "${CMAKE_CURRENT_SOURCE_DIR}/src/helpers.cpp"
-  "${CMAKE_CURRENT_SOURCE_DIR}/src/export_data.cpp")
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/export_data.cpp"
+  "${CMAKE_CURRENT_SOURCE_DIR}/src/course_ex/ex_3.cpp")
 
 target_precompile_headers(${PROJECT_NAME} PRIVATE
                           "${CMAKE_SOURCE_DIR}/include/pch.h")

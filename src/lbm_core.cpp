@@ -28,9 +28,9 @@ const std::string this_filename = "lbm_core.cpp";
 void streaming_step(std::array<Eigen::ArrayXXd, Q> &f, const Gridsize &gridsize,
                     const std::array<double, Q> &cxs,
                     const std::array<double, Q> &cys) {
-  for (unsigned int i = 1; i < Q; ++i) {
-    roll2D(f[i], gridsize, cys[i], cxs[i]);
-  }
+    for (unsigned int i = 1; i < Q; ++i) {
+        roll2D(f[i], gridsize, cys[i], cxs[i]);
+    }
 }
 
 /**
@@ -55,19 +55,19 @@ void compute_macroscopic_variables(State &state, const Gridsize &gridsize,
                                    const std::array<double, Q> &cxs,
                                    const std::array<double, Q> &cys,
                                    const double cs) {
-  state.rho = Eigen::ArrayXXd::Zero(gridsize[1], gridsize[0]);
-  state.ux = Eigen::ArrayXXd::Zero(gridsize[1], gridsize[0]);
-  state.uy = Eigen::ArrayXXd::Zero(gridsize[1], gridsize[0]);
-  state.P = Eigen::ArrayXXd::Zero(gridsize[1], gridsize[0]);
-  for (unsigned int i = 0; i < Q; ++i) {
-    state.rho += f[i];
-    state.ux += cxs[i] * f[i];
-    state.uy += cys[i] * f[i];
-  }
-  state.ux = state.ux / state.rho;
-  state.uy = state.uy / state.rho;
-  // BUG : Not sure about pressure term
-  state.P = cs * cs + (state.ux * state.ux + state.uy * state.uy);
+    state.rho = Eigen::ArrayXXd::Zero(gridsize[1], gridsize[0]);
+    state.ux = Eigen::ArrayXXd::Zero(gridsize[1], gridsize[0]);
+    state.uy = Eigen::ArrayXXd::Zero(gridsize[1], gridsize[0]);
+    state.P = Eigen::ArrayXXd::Zero(gridsize[1], gridsize[0]);
+    for (unsigned int i = 0; i < Q; ++i) {
+        state.rho += f[i];
+        state.ux += cxs[i] * f[i];
+        state.uy += cys[i] * f[i];
+    }
+    state.ux = state.ux / state.rho;
+    state.uy = state.uy / state.rho;
+    // BUG : Not sure about pressure term
+    state.P = cs * cs + (state.ux * state.ux + state.uy * state.uy);
 }
 
 /**
@@ -110,70 +110,76 @@ int lattice_bolzmann_simulation(
     std::function<void(State &, const Gridsize &, const Grid &)>
         initial_condition) {
 
-  // output definitions
-  const unsigned int output_freq = 20;
-  const bool save_output = true;
+    // start log
+    std::cout << "Starting simulation: " << sim_name << std::endl;
 
-  // D2Q9 simulation
-  const unsigned int dr = 1; // BUG : Not sure if this should depend on grid
-  const unsigned int dt = 1; // BUG : Not sure if this should be an input
-  const double c = (double)dr / (double)dt;
-  const double cs = c / std::sqrt(3.);
-  const double beta = (double)dt / (2 * nu / (cs * cs) + (double)dt);
+    // output definitions
+    const unsigned int output_freq = 20;
+    const bool save_output = true;
 
-  const std::array<double, Q> cxs = {0, 0, c, c, c, 0, -c, -c, -c};
-  const std::array<double, Q> cys = {0, c, c, 0, -c, -c, -c, 0, c};
-  const std::array<double, Q> weigths = {4. / 9,  1. / 9,  1. / 36,
-                                         1. / 9,  1. / 36, 1. / 9,
-                                         1. / 36, 1. / 9,  1. / 36};
-  auto feq_calc = [&cxs, &cys, &weigths](std::array<Eigen::ArrayXXd, Q> &feq,
-                                         const Eigen::ArrayXXd &rho,
-                                         const Eigen::ArrayXXd &ux,
-                                         const Eigen::ArrayXXd &uy) {
-    for (unsigned int i = 0; i < Q; ++i) {
-      feq[i] = rho * weigths[i] *
-               (1.0 + 3. * (cxs[i] * ux + cys[i] * uy) +
-                9. * (cxs[i] * ux + cys[i] * uy).square() / 2 -
-                3 * (ux.square() + uy.square()) / 2);
-    }
-  };
+    // D2Q9 simulation
+    const unsigned int dr = 1; // BUG : Not sure if this should depend on grid
+    const unsigned int dt = 1; // BUG : Not sure if this should be an input
+    const double c = (double)dr / (double)dt;
+    const double cs = c / std::sqrt(3.);
+    const double beta = (double)dt / (2 * nu / (cs * cs) + (double)dt);
 
-  // Initial condition
-  initial_condition(state, gridsize, grid);
-  std::array<Eigen::ArrayXXd, Q> f;
-  std::array<Eigen::ArrayXXd, Q> feq;
-  std::array<Eigen::ArrayXXd, Q> fmirr;
-  feq_calc(feq, state.rho, state.ux, state.uy);
-  f = feq;
+    const std::array<double, Q> cxs = {0, 0, c, c, c, 0, -c, -c, -c};
+    const std::array<double, Q> cys = {0, c, c, 0, -c, -c, -c, 0, c};
+    const std::array<double, Q> weigths = {4. / 9,  1. / 9,  1. / 36,
+                                           1. / 9,  1. / 36, 1. / 9,
+                                           1. / 36, 1. / 9,  1. / 36};
+    auto feq_calc = [&cxs, &cys, &weigths](std::array<Eigen::ArrayXXd, Q> &feq,
+                                           const Eigen::ArrayXXd &rho,
+                                           const Eigen::ArrayXXd &ux,
+                                           const Eigen::ArrayXXd &uy) {
+        for (unsigned int i = 0; i < Q; ++i) {
+            feq[i] = rho * weigths[i] *
+                     (1.0 + 3. * (cxs[i] * ux + cys[i] * uy) +
+                      9. * (cxs[i] * ux + cys[i] * uy).square() / 2 -
+                      3 * (ux.square() + uy.square()) / 2);
+        }
+    };
 
-  if (save_output) {
-    if (save_state(sim_name, "num_", state, (double)0, CONFIRM) != 0) {
-      LOG_ERR(this_filename, "Saving state failed");
-      return 1;
-    }
-  }
-
-  for (unsigned int t = 1; t <= sim_time; ++t) {
-    // Collision step
+    // Initial condition
+    initial_condition(state, gridsize, grid);
+    std::array<Eigen::ArrayXXd, Q> f;
+    std::array<Eigen::ArrayXXd, Q> feq;
+    std::array<Eigen::ArrayXXd, Q> fmirr;
     feq_calc(feq, state.rho, state.ux, state.uy);
-    for (unsigned int i = 0; i < Q; ++i) {
-      fmirr[i] = 2 * feq[i] - f[i];
-      f[i] = (1 - beta) * f[i] + beta * fmirr[i];
-    }
-    // Streaming step
-    streaming_step(f, gridsize, cxs, cys);
-    // Boundary Condition
-    // Compute macroscopic variables
-    compute_macroscopic_variables(state, gridsize, f, cxs, cys, cs);
+    f = feq;
 
-    if (save_output && t % output_freq == 0) {
-      if (save_state(sim_name, "num_", state, (double)t, CONFIRM) != 0) {
-        LOG_ERR(this_filename, "Saving state failed");
-        return 1;
-      }
+    if (save_output) {
+        if (save_state(sim_name, "num_", state, (double)0, CONFIRM) != 0) {
+            LOG_ERR(this_filename, "Saving state failed");
+            return 1;
+        }
     }
-    std::cout << "\r time: " << t << "/" << sim_time;
-  }
 
-  return 0;
+    for (unsigned int t = 1; t <= sim_time; ++t) {
+        // Collision step
+        feq_calc(feq, state.rho, state.ux, state.uy);
+        for (unsigned int i = 0; i < Q; ++i) {
+            fmirr[i] = 2 * feq[i] - f[i];
+            f[i] = (1 - beta) * f[i] + beta * fmirr[i];
+        }
+        // Streaming step
+        streaming_step(f, gridsize, cxs, cys);
+        // Boundary Condition
+        // Compute macroscopic variables
+        compute_macroscopic_variables(state, gridsize, f, cxs, cys, cs);
+
+        if (save_output && t % output_freq == 0) {
+            if (save_state(sim_name, "num_", state, (double)t, CONFIRM) != 0) {
+                LOG_ERR(this_filename, "Saving state failed");
+                return 1;
+            }
+        }
+        std::cout << "\r time: " << t << "/" << sim_time;
+    }
+
+    // end log
+    std::cout << "\n" << std::endl;
+
+    return 0;
 }
