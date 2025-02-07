@@ -29,7 +29,15 @@ void streaming_step(std::array<Eigen::ArrayXXd, Q> &f, const Gridsize &gridsize,
                     const std::array<double, Q> &cxs,
                     const std::array<double, Q> &cys) {
     for (unsigned int i = 1; i < Q; ++i) {
+#if D == 1
+#error "1D roll function not implemented yet"
+#elif D == 2
         roll2D(f[i], gridsize, cys[i], cxs[i]);
+#elif D == 3
+#error "3D roll function not implemented yet"
+#else
+#error "Dimension can't be greater than 3D"
+#endif
     }
 }
 
@@ -50,6 +58,22 @@ void streaming_step(std::array<Eigen::ArrayXXd, Q> &f, const Gridsize &gridsize,
  * f[i]
  * \param[in] cs The lattice speed of sound
  */
+#if D == 1
+void compute_macroscopic_variables(State &state, const Gridsize &gridsize,
+                                   const std::array<Eigen::ArrayXXd, Q> &f,
+                                   const std::array<double, Q> &cxs,
+                                   const double cs) {
+    state.rho = Eigen::ArrayXXd::Zero(gridsize[1], gridsize[0]);
+    state.ux = Eigen::ArrayXXd::Zero(gridsize[1], gridsize[0]);
+    state.P = Eigen::ArrayXXd::Zero(gridsize[1], gridsize[0]);
+    for (unsigned int i = 0; i < Q; ++i) {
+        state.rho += f[i];
+        state.ux += cxs[i] * f[i];
+        state.P += cxs[i] * cxs[i] * f[i]
+    }
+    state.ux = state.ux / state.rho;
+}
+#elif D == 2
 void compute_macroscopic_variables(State &state, const Gridsize &gridsize,
                                    const std::array<Eigen::ArrayXXd, Q> &f,
                                    const std::array<double, Q> &cxs,
@@ -69,6 +93,33 @@ void compute_macroscopic_variables(State &state, const Gridsize &gridsize,
     // BUG : Not sure about pressure term
     state.P = cs * cs + (state.ux * state.ux + state.uy * state.uy);
 }
+#elif D == 3
+void compute_macroscopic_variables(State &state, const Gridsize &gridsize,
+                                   const std::array<Eigen::ArrayXXd, Q> &f,
+                                   const std::array<double, Q> &cxs,
+                                   const std::array<double, Q> &cys,
+                                   const std::array<double, Q> &czs,
+                                   const double cs) {
+    state.rho = Eigen::ArrayXXd::Zero(gridsize[1], gridsize[0]);
+    state.ux = Eigen::ArrayXXd::Zero(gridsize[1], gridsize[0]);
+    state.uy = Eigen::ArrayXXd::Zero(gridsize[1], gridsize[0]);
+    state.uz = Eigen::ArrayXXd::Zero(gridsize[1], gridsize[0]);
+    state.P = Eigen::ArrayXXd::Zero(gridsize[1], gridsize[0]);
+    for (unsigned int i = 0; i < Q; ++i) {
+        state.rho += f[i];
+        state.ux += cxs[i] * f[i];
+        state.uy += cys[i] * f[i];
+        state.uz += czs[i] * f[i];
+    }
+    state.ux = state.ux / state.rho;
+    state.uy = state.uy / state.rho;
+    // BUG : Not sure about pressure term
+    state.P = cs * cs +
+              (state.ux * state.ux + state.uy * state.uy + state.uz * state.uz);
+}
+#else
+#error "Dimension can't be greater than 3D"
+#endif
 
 /**
  * \brief Main simulation function for the lattice Boltzmann method.
@@ -125,11 +176,20 @@ int lattice_bolzmann_simulation(
     const double cs = c / std::sqrt(3.);
     const double beta = (double)dt / (2 * nu / (cs * cs) + (double)dt);
 
+#if D == 1
+    const std::array<double, Q> cxs = {0, 0, c, c, c, 0, -c, -c, -c};
+#elif D == 2
     const std::array<double, Q> cxs = {0, 0, c, c, c, 0, -c, -c, -c};
     const std::array<double, Q> cys = {0, c, c, 0, -c, -c, -c, 0, c};
     const std::array<double, Q> weigths = {4. / 9,  1. / 9,  1. / 36,
                                            1. / 9,  1. / 36, 1. / 9,
                                            1. / 36, 1. / 9,  1. / 36};
+#elif D == 3
+#error "3D lattice_bolzmann_simulation function not implemented yet"
+#else
+#error "Dimension can't be greater than 3D"
+#endif
+
     auto feq_calc = [&cxs, &cys, &weigths](std::array<Eigen::ArrayXXd, Q> &feq,
                                            const Eigen::ArrayXXd &rho,
                                            const Eigen::ArrayXXd &ux,

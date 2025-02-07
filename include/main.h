@@ -6,7 +6,7 @@
 #include "Eigen/Dense"
 #include "ProjectConfig.h"
 
-#define D 2;
+#define D 2
 #define Q 9
 
 #endif // MAIN_H
