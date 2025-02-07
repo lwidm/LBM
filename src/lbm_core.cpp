@@ -115,6 +115,7 @@ int lattice_bolzmann_simulation(
 
     // output definitions
     const unsigned int output_freq = 20;
+    const unsigned int log_freq = 200;
     const bool save_output = true;
 
     // D2Q9 simulation
@@ -175,7 +176,9 @@ int lattice_bolzmann_simulation(
                 return 1;
             }
         }
-        std::cout << "\r time: " << t << "/" << sim_time;
+        if (t % log_freq == 0) {
+            std::cout << "\r time: " << t << "/" << sim_time << std::flush;
+        }
     }
 
     // end log

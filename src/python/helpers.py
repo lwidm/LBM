@@ -1,5 +1,3 @@
-#!/usr/bin/env python3
-
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
@@ -196,9 +194,6 @@ def load_eigen_matrix(filename: str, order: str = "F") -> arrayXXd:
     return matrix
 
 
-# %% %%%%%%%%%%%%%%%%%%%% main block ####################
-
-
 ##
 # \brief get a floating point time value from the data filename
 #
@@ -222,6 +217,7 @@ def extract_time_from_filename(filename: str) -> float:
 # This function plots a sequence of 2D numpy arrays as a time series using `pcolor` from `matplotlib`.
 # Each array is plotted sequentially, with a pause between frames to create an animation-like effect.
 #
+# \param name (str): The name of the plot (will be displayed in the title).
 # \param fig (Figure): The matplotlib figure to use for plotting (created with `plt.figure()`).
 # \param X (arrayXXd): The X grid (2D array filled with the x-values).
 # \param Y (arrayXXd): The Y grid (2D array filled with the y-values).
@@ -232,6 +228,7 @@ def extract_time_from_filename(filename: str) -> float:
 #
 # \see extract_time_from_filename: Function to extract a floating point time from the data's filename
 def pcolor_numpy_series(
+    name: str,
     fig: Figure,
     X: arrayXXd,
     Y: arrayXXd,
@@ -248,83 +245,9 @@ def pcolor_numpy_series(
             return 0
         t: float = extract_time_from_filename(array_filenames[i])
         plt.pcolor(X, Y, arrays[i])
-        plt.title(f"time = {t}/{t_end}")
+        plt.title(f"{name}: time = {t}/{t_end}")
         plt.clim(clim_[0], clim_[1])
         plt.colorbar()
         plt.draw()
         plt.pause(pause)
     return 0
-
-
-##
-# \brief Entry point of the `post_precessing.py` file
-def main() -> int:
-    directory: str = OUTPUT_DIR + "/2D_Taylor_Green"
-
-    X: arrayXXd = load_eigen_matrix(directory + "/X.bin")
-    Y: arrayXXd = load_eigen_matrix(directory + "/Y.bin")
-
-    ux_files: List[str] = sorted(
-        glob.glob(directory + "/num_ux_t=*.bin"), key=extract_time_from_filename
-    )
-    uy_files: List[str] = sorted(
-        glob.glob(directory + "/num_uy_t=*.bin"), key=extract_time_from_filename
-    )
-
-    if len(ux_files) != len(uy_files):
-        LOG_ERR(
-            this_filename,
-            f"the number of ux_files ({len(ux_files)}) and uy_files ({len(uy_files)}) aren't equal.",
-        )
-        return 1
-    if len(ux_files) == 0:
-        LOG_ERR(this_filename, "No ux_files and uy_files found.")
-        return 1
-
-    max_time: float = extract_time_from_filename(ux_files[-1])
-
-    ux: arrayXXd
-    uy: arrayXXd
-    max_mag: float = 0
-    plt.ion()
-    mag_arrays: List = [None] * len(ux_files)
-    for i in np.arange(len(ux_files)):
-        ux = load_eigen_matrix(ux_files[i])
-        uy = load_eigen_matrix(uy_files[i])
-        mag_arrays[i] = np.sqrt(ux**2, uy**2)
-        max_mag = np.max([max_mag, np.max(mag_arrays[i])])
-
-    fig = plt.figure()
-    pcolor_numpy_series(fig, X, Y, ux_files, mag_arrays, (0, max_mag), 0.1)
-
-    ux = load_eigen_matrix(ux_files[-1])
-    uy = load_eigen_matrix(uy_files[-1])
-
-    ux_file_ana: str = glob.glob(directory + "/ana_ux_t=*.bin")[0]
-    uy_file_ana: str = glob.glob(directory + "/ana_uy_t=*.bin")[0]
-    ux_ana: arrayXXd = load_eigen_matrix(ux_file_ana)
-    uy_ana: arrayXXd = load_eigen_matrix(uy_file_ana)
-    t = extract_time_from_filename(ux_file_ana)
-    plt.figure()
-    mag_ana = np.sqrt(ux_ana**2, uy_ana**2)
-    max_mag = np.max([max_mag, np.max(mag_ana)])
-    plt.pcolor(X, Y, mag_ana)
-    plt.title(f"analytical, time = {t}/{max_time}")
-    plt.clim(0, max_mag)
-    plt.colorbar()
-    plt.draw()
-
-    plt.figure()
-    mag_ana = np.sqrt((ux_ana - ux) ** 2, (uy_ana - uy) ** 2)
-    max_mag = np.max([max_mag, np.max(mag_ana)])
-    plt.pcolor(X, Y, mag_ana)
-    plt.title(f"error = {t}/{max_time}")
-    plt.colorbar()
-    plt.show()
-    input("press Enter to exit")
-    return 0
-
-
-if __name__ == "__main__":
-    err: int = main()
-    exit(err)

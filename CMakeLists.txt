@@ -95,8 +95,12 @@ configure_file("${CMAKE_SOURCE_DIR}/include/ProjectConfig.h.in"
                "${CMAKE_BINARY_DIR}/ProjectConfig.h" @ONLY)
 
 # ----- Python files -----
-configure_file("${CMAKE_SOURCE_DIR}/src/python/post_processing.py.in"
-               "${CMAKE_BINARY_DIR}/post_processing.py")
+configure_file("${CMAKE_SOURCE_DIR}/src/python/post_processing.py"
+               "${CMAKE_BINARY_DIR}/post_processing.py" @ONLY)
+configure_file("${CMAKE_SOURCE_DIR}/src/python/helpers.py"
+               "${CMAKE_BINARY_DIR}/helpers.py" @ONLY)
+configure_file("${CMAKE_SOURCE_DIR}/src/python/ex_3.py"
+               "${CMAKE_BINARY_DIR}/ex_3.py" @ONLY)
 if(UNIX)
   file(CHMOD "${CMAKE_BINARY_DIR}/post_processing.py" FILE_PERMISSIONS
        OWNER_EXECUTE)
