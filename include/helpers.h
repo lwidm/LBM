@@ -187,6 +187,8 @@ void roll2D(Eigen::Array<T, Eigen::Dynamic, Eigen::Dynamic> &array,
     }
 }
 
+Grid meshgrid_1D(const Gridsize &gridsize, const GridVectors &gridvectors);
+Grid meshgrid_2D(const Gridsize &gridsize, const GridVectors &gridvectors);
 Grid meshgrid(const Gridsize &gridsize, const GridVectors &gridvectors);
 
 Eigen::ArrayXXd curlZ(const Eigen::ArrayXXd &ux, const Eigen::ArrayXXd &uy,

@@ -1,11 +1,12 @@
 #include "helpers.h"
 #include <cerrno>
-#include <cstddef>
 #include <cstring>
 #include <iostream>
 #include <string.h>
 
 static std::string this_filename = "helpers.cpp";
+
+void print_err(const std::string &filename, const std::string &message);
 
 /**
  * \brief Prints an error message to the standard output.
@@ -79,6 +80,36 @@ void log(const std::string &filename, const std::string &message,
         break;
     }
 }
+/**
+ * \brief Generates a symbolic "1D meshgrid" from the provided 1D grid vectors.
+ *
+ * Since in 1D there is no mesh the grid is equivalent to the gird vectors. But
+ * for the sake of consistency and type compatibility we still need the grid of
+ * the 1D simulation. This function is used to create (copy) that grid.
+ *
+ * \param[in] gridsize The size of the computational grid in Nx (Ny and Nz must
+ * be equal to 1).
+ * \param[in] gridvectors The grid vectors containing the 1D array of the x
+ * coordinates.
+ * \return grid A Grid struct containing the 1D meshgrid arrays for the X
+ * coordinates
+ *
+ */
+Grid meshgrid_1D(const Gridsize &gridsize, const GridVectors &gridvectors) {
+    const Eigen::Index Nx = gridsize[0];
+    if (gridsize[1] != 1 && gridsize[2] != 1) {
+        LOG_ERR(this_filename,
+                "meshgrid_1D requires Ny and Nz to be equal to 1");
+        return Grid();
+    }
+
+    Eigen::ArrayXXd X(1, Nx);
+    X = gridvectors.x;
+
+    Grid grid;
+    grid.X = X;
+    return grid;
+}
 
 /**
  * \brief Generates a 2D meshgrid from the provided grid vectors.
@@ -87,21 +118,18 @@ void log(const std::string &filename, const std::string &message,
  * the provided grid size and grid vectors.
  *
  * \param[in] gridsize The size of the computational grid in Nx and Ny (Nz must
- * be 1).
+ * be equal 1).
  * \param[in] gridvectors The grid vectors containing the 1D arrays of x and y
  * coordinates.
- * \return grid A Grid struct containing the 2D meshgrid arrays for the X (,Y
- * and Z) coordinates.
+ * \return grid A Grid struct containing the 2D meshgrid arrays for the X and Y
+ * coordinates.
  *
- * \details Currently not implemented for 3D Arrays. This function will return
- * an error if Nz is not equal to 1.
  */
-Grid meshgrid(const Gridsize &gridsize, const GridVectors &gridvectors) {
-    const std::size_t Nx = gridsize[0];
-    const std::size_t Ny = gridsize[1];
+Grid meshgrid_2D(const Gridsize &gridsize, const GridVectors &gridvectors) {
+    const Eigen::Index Nx = gridsize[0];
+    const Eigen::Index Ny = gridsize[1];
     if (gridsize[2] != 1) {
-        LOG_ERR(this_filename,
-                "meshgrid function only implemented for 2D grids");
+        LOG_ERR(this_filename, "meshgrid_2D requires Nz to be equal to 1");
         return Grid();
     }
     const Eigen::ArrayXd x = gridvectors.x;
@@ -111,14 +139,42 @@ Grid meshgrid(const Gridsize &gridsize, const GridVectors &gridvectors) {
     Eigen::ArrayXXd Y(Ny, Nx);
 
     // TODO : Use the Eigen row assignements for speed
-    for (std::size_t i = 0; i < Nx; ++i) {
-        for (std::size_t j = 0; j < Ny; ++j) {
+    for (Eigen::Index i = 0; i < Nx; ++i) {
+        for (Eigen::Index j = 0; j < Ny; ++j) {
             X(j, i) = x(i);
             Y(j, i) = y(j);
         }
     }
 
-    Grid grid = {X, Y};
+    Grid grid;
+    grid.X = X;
+    grid.Y = Y;
+    return grid;
+}
+
+/**
+ * \brief Generates a meshgrid using the globally specified dimension
+ *
+ * Since in 1D there is no mesh the grid is equivalent to the gird vectors. But
+ * for the sake of consistency and type compatibility we still need the grid of
+ * the 1D simulation. This function is used to create (copy) that grid.
+ *
+ * \param[in] gridsize The size of the computational grid in [Nx (, Ny, Nz)]
+ * \param[in] gridvectors The grid vectors containing the arrays of the x (, y
+ * and z) coordinates.
+ * \return grid A Grid struct containing the meshgrid arrays for the X (, Y and
+ * Z) coordinates
+ */
+Grid meshgrid(const Gridsize &gridsize, const GridVectors &gridvectors) {
+#if D == 1
+    Grid gird = meshgrid_1D(gridsize, gridvectors);
+#elif D == 2
+    Grid grid = meshgrid_2D(gridsize, gridvectors);
+#elif D == 3
+#error "3D meshgrid not implemented yet"
+#else
+#error "Dimension can't be greater than 3D"
+#endif
     return grid;
 }
 
@@ -143,8 +199,8 @@ Grid meshgrid(const Gridsize &gridsize, const GridVectors &gridvectors) {
  */
 Eigen::ArrayXXd curlZ(const Eigen::ArrayXXd &ux, const Eigen::ArrayXXd &uy,
                       const Gridsize &gridsize, const double dr) {
-    const std::size_t Nx = gridsize[0];
-    const std::size_t Ny = gridsize[1];
+    const Eigen::Index Nx = gridsize[0];
+    const Eigen::Index Ny = gridsize[1];
     if (gridsize[2] != 1) {
         LOG_ERR(this_filename, "curlZ does only supports 2D grids");
         return Eigen::ArrayXXd();
@@ -153,8 +209,8 @@ Eigen::ArrayXXd curlZ(const Eigen::ArrayXXd &ux, const Eigen::ArrayXXd &uy,
     const double dy = dr;
     // BUG : Do this propery with the boundery condition (Matrix operation)
     Eigen::ArrayXXd curl = Eigen::ArrayXXd::Constant(Ny, Nx, 0);
-    for (std::size_t i = 1; i < Nx - 1; ++i) {
-        for (std::size_t j = 1; j < Ny - 1; ++j) {
+    for (Eigen::Index i = 1; i < Nx - 1; ++i) {
+        for (Eigen::Index j = 1; j < Ny - 1; ++j) {
             double duydx = (uy(j, i + 1) - uy(j, i - 1)) / (2 * dx);
             double duxdy = (ux(j + 1, i) - ux(j - 1, i)) / (2 * dy);
             curl(j, i) = duydx - duxdy;

@@ -25,18 +25,20 @@ static std::string filename = "analytical.cpp";
  *
  * \see initial_condition
  */
-void analytical_Poiseuille(State &state, const Gridsize &gridsize,
-                           const Grid &grid, const double nu,
-                           const double rho_0, const double u_0,
-                           const double p_0) {
-    const double Fx_val = 12.0 * rho_0 * u_0 * nu /
-                          ((double)(gridsize[1]) * (double)(gridsize[1]));
+void analytical_Poiseuille_2D(State &state, const Gridsize &gridsize,
+                              const Grid &grid, const double nu,
+                              const double rho_0, const double u_0,
+                              const double p_0) {
+    const double Fx_val =
+        12.0 * rho_0 * u_0 * nu /
+        (static_cast<double>(gridsize[1]) * static_cast<double>(gridsize[1]));
     Eigen::ArrayXXd Fx =
         Eigen::ArrayXXd::Constant(gridsize[1], gridsize[0], Fx_val);
     state.rho = Eigen::ArrayXXd::Constant(gridsize[1], gridsize[0], rho_0);
     state.uy = Eigen::ArrayXXd::Zero(gridsize[1], gridsize[0]);
     state.ux = Eigen::ArrayXXd::Zero(gridsize[1], gridsize[0]);
-    state.ux = Fx / (rho_0 * nu) * grid.Y * ((double)(gridsize[1]) - grid.Y);
+    state.ux = Fx / (rho_0 * nu) * grid.Y *
+               (static_cast<double>(gridsize[1]) - grid.Y);
     // BUG : Not sure if P is physical here
     state.P = Eigen::ArrayXXd::Constant(gridsize[1], gridsize[0], p_0);
 }
@@ -60,10 +62,10 @@ void analytical_Poiseuille(State &state, const Gridsize &gridsize,
  *
  * \see initial_condition
  */
-void initCond_TaylorGreen(State &state, const Gridsize &gridsize,
-                          const Grid &grid, const double rho_0,
-                          const double u_0, const double p_0) {
-    const double L = std::min(gridsize[0], gridsize[1]);
+void initCond_TaylorGreen_2D(State &state, const Gridsize &gridsize,
+                             const Grid &grid, const double rho_0,
+                             const double u_0, const double p_0) {
+    const double L = static_cast<double>(std::min(gridsize[0], gridsize[1]));
     state.rho = Eigen::ArrayXXd::Constant(gridsize[1], gridsize[0], rho_0);
     state.ux =
         -u_0 * (2 * M_PI * grid.X / L).cos() * (2 * M_PI * grid.Y / L).sin();
@@ -95,13 +97,13 @@ void initCond_TaylorGreen(State &state, const Gridsize &gridsize,
  *
  * \see initial_condition
  */
-void analytical_TaylorGreen(State &state, const Gridsize &gridsize,
-                            const Grid &grid, const double nu,
-                            const double rho_0, const double u_0,
-                            const double p_0, const double t_prime) {
-    const double L = std::min(gridsize[0], gridsize[1]);
+void analytical_TaylorGreen_2D(State &state, const Gridsize &gridsize,
+                               const Grid &grid, const double nu,
+                               const double rho_0, const double u_0,
+                               const double p_0, const double t_prime) {
+    const double L = static_cast<double>(std::min(gridsize[0], gridsize[1]));
     const double Re = u_0 * L / nu;
-    initCond_TaylorGreen(state, gridsize, grid, rho_0, u_0, p_0);
+    initCond_TaylorGreen_2D(state, gridsize, grid, rho_0, u_0, p_0);
     // BUG : Aliasing might be an issue here
     state.ux = state.ux * std::exp(-8 * M_PI * M_PI * t_prime / Re);
     state.uy = state.uy * std::exp(-8 * M_PI * M_PI * t_prime / Re);

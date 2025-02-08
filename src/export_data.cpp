@@ -13,6 +13,12 @@
 
 static std::string this_filename = "export_data.cpp";
 
+int save_eigen_matrix(Eigen::ArrayXXd &array,
+                      const std::string &output_filename,
+                      const SaveFlag save_flag);
+std::string metadata_map_to_json(const MetaData &metadata);
+int create_new_save_dir(const std::string &sim_dir, const MetaData &metadata);
+
 /**
  * \brief Saves a 2D Eigen matrix to a binary file.
  *
@@ -33,7 +39,7 @@ static std::string this_filename = "export_data.cpp";
  * \see load_eigen_matrix: Python function to load an Eigen matrix from a binary
  * file
  */
-int save_eigen_matrix(const Eigen::ArrayXXd &array,
+int save_eigen_matrix(Eigen::ArrayXXd &array,
                       const std::string &output_filename,
                       const SaveFlag save_flag) {
 
@@ -63,11 +69,13 @@ int save_eigen_matrix(const Eigen::ArrayXXd &array,
 
     std::ofstream outFile(output_filename, std::ios::binary);
     if (outFile.is_open()) {
-        unsigned int rows = array.rows();
-        unsigned int cols = array.rows();
-        outFile.write((char *)&rows, sizeof(unsigned int));
-        outFile.write((char *)&cols, sizeof(unsigned int));
-        outFile.write((char *)array.data(), rows * cols * sizeof(double));
+        Eigen::Index rows = array.rows();
+        Eigen::Index cols = array.rows();
+        outFile.write(reinterpret_cast<char *>(&rows), sizeof(unsigned int));
+        outFile.write(reinterpret_cast<char *>(&cols), sizeof(unsigned int));
+        outFile.write(reinterpret_cast<char *>(array.data()),
+                      static_cast<unsigned int>(rows) *
+                          static_cast<unsigned int>(cols) * sizeof(double));
         outFile.close();
     } else {
         LOG_ERR(this_filename,
@@ -146,7 +154,7 @@ int create_new_save_dir(const std::string &sim_dir, const MetaData &metadata) {
  * \return 0 if the directory is initialized successfully, 1 if an error occurs.
  */
 int init_save_dir(const std::string &sim_name, const MetaData &metadata,
-                  const Grid grid, const SaveFlag save_flag) {
+                  Grid grid, const SaveFlag save_flag) {
     std::filesystem::create_directory(OUTPUT_DIR);
     std::string sim_dir = OUTPUT_DIR + std::string("/") + sim_name;
 
@@ -171,9 +179,23 @@ int init_save_dir(const std::string &sim_name, const MetaData &metadata,
         std::filesystem::remove_all(sim_dir);
     }
     create_new_save_dir(sim_dir, metadata);
-    save_eigen_matrix(grid.X, sim_dir + "/X.bin", save_flag);
-    save_eigen_matrix(grid.Y, sim_dir + "/Y.bin", save_flag);
-    return 0;
+    int err = 0;
+    err += save_eigen_matrix(grid.X, sim_dir + "/X.bin", save_flag);
+#if D > 1
+    err += save_eigen_matrix(grid.Y, sim_dir + "/Y.bin", save_flag);
+#endif
+#if D > 2
+    err += save_eigen_matrix(grid.Y, sim_dir + "/Y.bin", save_flag);
+#endif
+#if D > 3
+#error "Dimension can't be greater than 3D"
+#endif
+
+    if (err > 0) {
+        LOG_ERR(this_filename,
+                "Saving grid arrays failed in save initialization.");
+    }
+    return err;
 }
 
 /**
@@ -200,7 +222,7 @@ int init_save_dir(const std::string &sim_name, const MetaData &metadata,
  * => analytical_ux_t=2.0000e+02.bin, analytical_uy_t=2.0000e+02.bin, etc.
  */
 int save_state(const std::string &sim_name,
-               const std::string &additional_string, const State state,
+               const std::string &additional_string, State state,
                const double sim_time, const SaveFlag save_flag) {
 
     std::filesystem::create_directory(OUTPUT_DIR);

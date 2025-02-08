@@ -248,6 +248,8 @@ def pcolor_numpy_series(
         plt.title(f"{name}: time = {t}/{t_end}")
         plt.clim(clim_[0], clim_[1])
         plt.colorbar()
-        plt.draw()
-        plt.pause(pause)
+        # plt.draw()
+        fig.canvas.draw_idle()
+        fig.canvas.flush_events()
+        # plt.pause(pause)
     return 0

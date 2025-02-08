@@ -2,6 +2,7 @@ cmake_minimum_required(VERSION 3.15)
 project(LBM VERSION 1.0)
 
 set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
 # ----- Use ccache if it exists -----
@@ -43,8 +44,8 @@ set(msvc_cxx "$<COMPILE_LANG_AND_ID:CXX,MSVC>")
 target_compile_options(
   LBM_compiler_flags
   INTERFACE
-    "$<${gcc_like_cxx}:$<BUILD_INTERFACE:-Wall;-Wextra;-Wshadow;-Wformat=2;-Wunused>>"
-    "$<${msvc_cxx}:$<BUILD_INTERFACE:-W3>>")
+    "$<${gcc_like_cxx}:$<BUILD_INTERFACE:-Wall;-Wextra;-Wshadow;-Wformat=2;-Wunused;-Wno-c++98-compat>>"
+    "$<${msvc_cxx}:$<BUILD_INTERFACE:-W3;>>")
 
 # Release Configuration
 target_compile_options(

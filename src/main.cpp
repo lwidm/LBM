@@ -9,6 +9,9 @@
 #include <string>
 
 static std::string this_filename = "main.cpp";
+void initial_condition(State &state, const Gridsize &gridsize, const Grid &grid,
+                       [[maybe_unused]] const double nu, const double rho_0,
+                       const double u_0, const double p_0);
 
 /**
  * \brief Initializes the state variables for the lattice Boltzmann simulation.
@@ -33,7 +36,7 @@ void initial_condition(State &state, const Gridsize &gridsize, const Grid &grid,
                        [[maybe_unused]] const double nu, const double rho_0,
                        const double u_0, const double p_0) {
     // analytical_Poiseuille(state, gridsize, grid, nu, rho_0, u_0, p_0);
-    initCond_TaylorGreen(state, gridsize, grid, rho_0, u_0, p_0);
+    initCond_TaylorGreen_2D(state, gridsize, grid, rho_0, u_0, p_0);
 }
 
 /**

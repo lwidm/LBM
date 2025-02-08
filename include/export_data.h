@@ -38,10 +38,10 @@ typedef enum {
 } SaveFlag;
 
 int init_save_dir(const std::string &sim_name, const MetaData &metadata,
-                  const Grid grid, const SaveFlag save_flag);
+                  Grid grid, const SaveFlag save_flag);
 
 int save_state(const std::string &sim_name,
-               const std::string &additional_string, const State state,
+               const std::string &additional_string, State state,
                const double sim_time, const SaveFlag save_flag);
 
 void create_metadata(MetaData &metadata, const unsigned int id,

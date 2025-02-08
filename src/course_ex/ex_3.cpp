@@ -1,3 +1,4 @@
+#include "ex_3.h"
 #include "analytical.h"
 #include "export_data.h"
 #include "helpers.h"
@@ -10,28 +11,40 @@
 #include <string>
 
 const std::string this_filename = "ex_3.cpp";
+void ex3_initial_condition(State &state, const Gridsize &gridsize,
+                           const Grid &grid, [[maybe_unused]] const double nu,
+                           const double rho_0, const double u_0,
+                           const double p_0);
+int ex3_LBM_loop(const std::string sim_name, const double dr,
+                 const Eigen::Index L, const double t_prime, const double nu,
+                 const double rho_0, const double u_0, const double p_0,
+                 const SolverType solver);
 
 void ex3_initial_condition(State &state, const Gridsize &gridsize,
                            const Grid &grid, [[maybe_unused]] const double nu,
                            const double rho_0, const double u_0,
                            const double p_0) {
-    initCond_TaylorGreen(state, gridsize, grid, rho_0, u_0, p_0);
+    initCond_TaylorGreen_2D(state, gridsize, grid, rho_0, u_0, p_0);
 }
 
-int ex3_LBM_loop(const std::string sim_name, const double dr, const double L,
-                 const double t_prime, const double nu, const double rho_0,
-                 const double u_0, const double p_0, const SolverType solver) {
-    std::size_t Nx = L;
-    std::size_t Ny = L;
-    std::size_t Nz = 1;
-    const unsigned int sim_time = (unsigned int)(t_prime * L / u_0);
+int ex3_LBM_loop(const std::string sim_name, const double dr,
+                 const Eigen::Index L, const double t_prime, const double nu,
+                 const double rho_0, const double u_0, const double p_0,
+                 const SolverType solver) {
+    Eigen::Index Nx = L;
+    Eigen::Index Ny = L;
+    Eigen::Index Nz = 1;
+    const unsigned int sim_time =
+        static_cast<unsigned int>(t_prime * static_cast<double>(L) / u_0);
 
-    const Gridsize gridsize = std::array<std::size_t, 3>{Nx, Ny, Nz};
+    const Gridsize gridsize = std::array<Eigen::Index, 3>{Nx, Ny, Nz};
 
     GridVectors gridvectors;
-    gridvectors.x = Eigen::ArrayXd::LinSpaced(Nx, dr / 2, Nx * dr);
-    gridvectors.y = Eigen::ArrayXd::LinSpaced(Ny, dr / 2, Ny * dr);
-    Grid grid = meshgrid(gridsize, gridvectors);
+    gridvectors.x =
+        Eigen::ArrayXd::LinSpaced(Nx, dr / 2, static_cast<double>(Nx) * dr);
+    gridvectors.y =
+        Eigen::ArrayXd::LinSpaced(Ny, dr / 2, static_cast<double>(Ny) * dr);
+    Grid grid = meshgrid_2D(gridsize, gridvectors);
 
     MetaData metadata;
     std::string description = "A standard LBM simulation of a 2D "
@@ -48,9 +61,9 @@ int ex3_LBM_loop(const std::string sim_name, const double dr, const double L,
     }
 
     auto initial_condition_preset =
-        [&nu, &rho_0, &u_0, &p_0](State &state, const Gridsize &gridsize,
-                                  const Grid &grid) {
-            ex3_initial_condition(state, gridsize, grid, nu, rho_0, u_0, p_0);
+        [&nu, &rho_0, &u_0, &p_0](State &state, const Gridsize &gridsize_,
+                                  const Grid &grid_) {
+            ex3_initial_condition(state, gridsize_, grid_, nu, rho_0, u_0, p_0);
         };
 
     State state;
@@ -66,10 +79,10 @@ int ex3_LBM_loop(const std::string sim_name, const double dr, const double L,
     Eigen::ArrayXXd curl = curlZ(state.ux, state.uy, gridsize, dr);
 
     State analytical_state;
-    analytical_TaylorGreen(analytical_state, gridsize, grid, nu, rho_0, u_0,
-                           p_0, t_prime);
-    if (save_state(sim_name, "ana_", analytical_state, (double)sim_time,
-                   FORCE) != 0) {
+    analytical_TaylorGreen_2D(analytical_state, gridsize, grid, nu, rho_0, u_0,
+                              p_0, t_prime);
+    if (save_state(sim_name, "ana_", analytical_state,
+                   static_cast<double>(sim_time), FORCE) != 0) {
         LOG_ERR(this_filename, "Saving state failed");
         return 1;
     }
@@ -86,14 +99,14 @@ int ex3_main() {
     const double fixed_nu = 0.064;
     const double fixed_u_0 = 0.1;
     const double t_prime = 2.5;
-    const std::array<std::size_t, 3> L = {64, 96, 128};
+    const std::array<Eigen::Index, 3> L = {64, 96, 128};
     const SolverType solver = LBM;
 
     // ----------- Run the 3 simulations -----------
 
     // fixed u_0
     for (std::size_t i = 0; i < 3; ++i) {
-        const double nu = fixed_u_0 * L[i] / Re;
+        const double nu = fixed_u_0 * static_cast<double>(L[i]) / Re;
         const double u_0 = fixed_u_0;
 
         std::ostringstream oss;
@@ -110,7 +123,7 @@ int ex3_main() {
 
     // fixed nu
     for (std::size_t i = 0; i < 3; ++i) {
-        const double u_0 = fixed_nu * Re / L[i];
+        const double u_0 = fixed_nu * Re / static_cast<double>(L[i]);
         const double nu = fixed_nu;
 
         std::ostringstream oss;

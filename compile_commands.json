@@ -1,44 +1,44 @@
 [
 {
-  "directory": "/home/lukas/Documents/04_projects/LBM/build",
-  "command": "/usr/bin/clang++ -I/home/lukas/Documents/04_projects/LBM/include -I/home/lukas/Documents/04_projects/LBM/build -O3 -DNDEBUG -std=gnu++17 -Wall -Wextra -Wshadow -Wformat=2 -Wunused -O3 -march=native -funroll-loops -mtune=native -fomit-frame-pointer -Winvalid-pch -fpch-instantiate-templates -Xclang -emit-pch -Xclang -include -Xclang /home/lukas/Documents/04_projects/LBM/build/CMakeFiles/LBM.dir/cmake_pch.hxx -x c++-header -o CMakeFiles/LBM.dir/cmake_pch.hxx.pch -c /home/lukas/Documents/04_projects/LBM/build/CMakeFiles/LBM.dir/cmake_pch.hxx.cxx",
-  "file": "/home/lukas/Documents/04_projects/LBM/build/CMakeFiles/LBM.dir/cmake_pch.hxx.cxx",
-  "output": "CMakeFiles/LBM.dir/cmake_pch.hxx.pch"
+  "directory": "C:/Users/lukas/Documents/04_projects/LBM/build",
+  "command": "C:\\PROGRA~1\\MICROS~2\\2022\\COMMUN~1\\VC\\Tools\\Llvm\\x64\\bin\\clang-cl.exe  /nologo -TP -IC:\\Users\\lukas\\Documents\\04_projects\\LBM\\include -IC:\\Users\\lukas\\Documents\\04_projects\\LBM\\build /DWIN32 /D_WINDOWS /GR /EHsc /O2 /Ob2 /DNDEBUG -std:c++17 -MD -Wall -Wextra -Wshadow -Wformat=2 -Wunused -Wno-c++98-compat -O3 -march=native -funroll-loops -mtune=native -fomit-frame-pointer /YcC:/Users/lukas/Documents/04_projects/LBM/build/CMakeFiles/LBM.dir/cmake_pch.hxx /FpC:/Users/lukas/Documents/04_projects/LBM/build/CMakeFiles/LBM.dir/./cmake_pch.cxx.pch /FIC:/Users/lukas/Documents/04_projects/LBM/build/CMakeFiles/LBM.dir/cmake_pch.hxx /FoCMakeFiles\\LBM.dir\\cmake_pch.cxx.obj /FdCMakeFiles\\LBM.dir\\ -c -- C:\\Users\\lukas\\Documents\\04_projects\\LBM\\build\\CMakeFiles\\LBM.dir\\cmake_pch.cxx",
+  "file": "C:\\Users\\lukas\\Documents\\04_projects\\LBM\\build\\CMakeFiles\\LBM.dir\\cmake_pch.cxx",
+  "output": "CMakeFiles\\LBM.dir\\cmake_pch.cxx.obj"
 },
 {
-  "directory": "/home/lukas/Documents/04_projects/LBM/build",
-  "command": "/usr/bin/clang++ -I/home/lukas/Documents/04_projects/LBM/include -I/home/lukas/Documents/04_projects/LBM/build -O3 -DNDEBUG -std=gnu++17 -Wall -Wextra -Wshadow -Wformat=2 -Wunused -O3 -march=native -funroll-loops -mtune=native -fomit-frame-pointer -Winvalid-pch -Xclang -include-pch -Xclang /home/lukas/Documents/04_projects/LBM/build/CMakeFiles/LBM.dir/cmake_pch.hxx.pch -Xclang -include -Xclang /home/lukas/Documents/04_projects/LBM/build/CMakeFiles/LBM.dir/cmake_pch.hxx -o CMakeFiles/LBM.dir/src/main.cpp.o -c /home/lukas/Documents/04_projects/LBM/src/main.cpp",
-  "file": "/home/lukas/Documents/04_projects/LBM/src/main.cpp",
-  "output": "CMakeFiles/LBM.dir/src/main.cpp.o"
+  "directory": "C:/Users/lukas/Documents/04_projects/LBM/build",
+  "command": "C:\\PROGRA~1\\MICROS~2\\2022\\COMMUN~1\\VC\\Tools\\Llvm\\x64\\bin\\clang-cl.exe  /nologo -TP -IC:\\Users\\lukas\\Documents\\04_projects\\LBM\\include -IC:\\Users\\lukas\\Documents\\04_projects\\LBM\\build /DWIN32 /D_WINDOWS /GR /EHsc /O2 /Ob2 /DNDEBUG -std:c++17 -MD -Wall -Wextra -Wshadow -Wformat=2 -Wunused -Wno-c++98-compat -O3 -march=native -funroll-loops -mtune=native -fomit-frame-pointer /YuC:/Users/lukas/Documents/04_projects/LBM/build/CMakeFiles/LBM.dir/cmake_pch.hxx /FpC:/Users/lukas/Documents/04_projects/LBM/build/CMakeFiles/LBM.dir/./cmake_pch.cxx.pch /FIC:/Users/lukas/Documents/04_projects/LBM/build/CMakeFiles/LBM.dir/cmake_pch.hxx /FoCMakeFiles\\LBM.dir\\src\\main.cpp.obj /FdCMakeFiles\\LBM.dir\\ -c -- C:\\Users\\lukas\\Documents\\04_projects\\LBM\\src\\main.cpp",
+  "file": "C:\\Users\\lukas\\Documents\\04_projects\\LBM\\src\\main.cpp",
+  "output": "CMakeFiles\\LBM.dir\\src\\main.cpp.obj"
 },
 {
-  "directory": "/home/lukas/Documents/04_projects/LBM/build",
-  "command": "/usr/bin/clang++ -I/home/lukas/Documents/04_projects/LBM/include -I/home/lukas/Documents/04_projects/LBM/build -O3 -DNDEBUG -std=gnu++17 -Wall -Wextra -Wshadow -Wformat=2 -Wunused -O3 -march=native -funroll-loops -mtune=native -fomit-frame-pointer -Winvalid-pch -Xclang -include-pch -Xclang /home/lukas/Documents/04_projects/LBM/build/CMakeFiles/LBM.dir/cmake_pch.hxx.pch -Xclang -include -Xclang /home/lukas/Documents/04_projects/LBM/build/CMakeFiles/LBM.dir/cmake_pch.hxx -o CMakeFiles/LBM.dir/src/lbm_core.cpp.o -c /home/lukas/Documents/04_projects/LBM/src/lbm_core.cpp",
-  "file": "/home/lukas/Documents/04_projects/LBM/src/lbm_core.cpp",
-  "output": "CMakeFiles/LBM.dir/src/lbm_core.cpp.o"
+  "directory": "C:/Users/lukas/Documents/04_projects/LBM/build",
+  "command": "C:\\PROGRA~1\\MICROS~2\\2022\\COMMUN~1\\VC\\Tools\\Llvm\\x64\\bin\\clang-cl.exe  /nologo -TP -IC:\\Users\\lukas\\Documents\\04_projects\\LBM\\include -IC:\\Users\\lukas\\Documents\\04_projects\\LBM\\build /DWIN32 /D_WINDOWS /GR /EHsc /O2 /Ob2 /DNDEBUG -std:c++17 -MD -Wall -Wextra -Wshadow -Wformat=2 -Wunused -Wno-c++98-compat -O3 -march=native -funroll-loops -mtune=native -fomit-frame-pointer /YuC:/Users/lukas/Documents/04_projects/LBM/build/CMakeFiles/LBM.dir/cmake_pch.hxx /FpC:/Users/lukas/Documents/04_projects/LBM/build/CMakeFiles/LBM.dir/./cmake_pch.cxx.pch /FIC:/Users/lukas/Documents/04_projects/LBM/build/CMakeFiles/LBM.dir/cmake_pch.hxx /FoCMakeFiles\\LBM.dir\\src\\lbm_core.cpp.obj /FdCMakeFiles\\LBM.dir\\ -c -- C:\\Users\\lukas\\Documents\\04_projects\\LBM\\src\\lbm_core.cpp",
+  "file": "C:\\Users\\lukas\\Documents\\04_projects\\LBM\\src\\lbm_core.cpp",
+  "output": "CMakeFiles\\LBM.dir\\src\\lbm_core.cpp.obj"
 },
 {
-  "directory": "/home/lukas/Documents/04_projects/LBM/build",
-  "command": "/usr/bin/clang++ -I/home/lukas/Documents/04_projects/LBM/include -I/home/lukas/Documents/04_projects/LBM/build -O3 -DNDEBUG -std=gnu++17 -Wall -Wextra -Wshadow -Wformat=2 -Wunused -O3 -march=native -funroll-loops -mtune=native -fomit-frame-pointer -Winvalid-pch -Xclang -include-pch -Xclang /home/lukas/Documents/04_projects/LBM/build/CMakeFiles/LBM.dir/cmake_pch.hxx.pch -Xclang -include -Xclang /home/lukas/Documents/04_projects/LBM/build/CMakeFiles/LBM.dir/cmake_pch.hxx -o CMakeFiles/LBM.dir/src/analytical.cpp.o -c /home/lukas/Documents/04_projects/LBM/src/analytical.cpp",
-  "file": "/home/lukas/Documents/04_projects/LBM/src/analytical.cpp",
-  "output": "CMakeFiles/LBM.dir/src/analytical.cpp.o"
+  "directory": "C:/Users/lukas/Documents/04_projects/LBM/build",
+  "command": "C:\\PROGRA~1\\MICROS~2\\2022\\COMMUN~1\\VC\\Tools\\Llvm\\x64\\bin\\clang-cl.exe  /nologo -TP -IC:\\Users\\lukas\\Documents\\04_projects\\LBM\\include -IC:\\Users\\lukas\\Documents\\04_projects\\LBM\\build /DWIN32 /D_WINDOWS /GR /EHsc /O2 /Ob2 /DNDEBUG -std:c++17 -MD -Wall -Wextra -Wshadow -Wformat=2 -Wunused -Wno-c++98-compat -O3 -march=native -funroll-loops -mtune=native -fomit-frame-pointer /YuC:/Users/lukas/Documents/04_projects/LBM/build/CMakeFiles/LBM.dir/cmake_pch.hxx /FpC:/Users/lukas/Documents/04_projects/LBM/build/CMakeFiles/LBM.dir/./cmake_pch.cxx.pch /FIC:/Users/lukas/Documents/04_projects/LBM/build/CMakeFiles/LBM.dir/cmake_pch.hxx /FoCMakeFiles\\LBM.dir\\src\\analytical.cpp.obj /FdCMakeFiles\\LBM.dir\\ -c -- C:\\Users\\lukas\\Documents\\04_projects\\LBM\\src\\analytical.cpp",
+  "file": "C:\\Users\\lukas\\Documents\\04_projects\\LBM\\src\\analytical.cpp",
+  "output": "CMakeFiles\\LBM.dir\\src\\analytical.cpp.obj"
 },
 {
-  "directory": "/home/lukas/Documents/04_projects/LBM/build",
-  "command": "/usr/bin/clang++ -I/home/lukas/Documents/04_projects/LBM/include -I/home/lukas/Documents/04_projects/LBM/build -O3 -DNDEBUG -std=gnu++17 -Wall -Wextra -Wshadow -Wformat=2 -Wunused -O3 -march=native -funroll-loops -mtune=native -fomit-frame-pointer -Winvalid-pch -Xclang -include-pch -Xclang /home/lukas/Documents/04_projects/LBM/build/CMakeFiles/LBM.dir/cmake_pch.hxx.pch -Xclang -include -Xclang /home/lukas/Documents/04_projects/LBM/build/CMakeFiles/LBM.dir/cmake_pch.hxx -o CMakeFiles/LBM.dir/src/helpers.cpp.o -c /home/lukas/Documents/04_projects/LBM/src/helpers.cpp",
-  "file": "/home/lukas/Documents/04_projects/LBM/src/helpers.cpp",
-  "output": "CMakeFiles/LBM.dir/src/helpers.cpp.o"
+  "directory": "C:/Users/lukas/Documents/04_projects/LBM/build",
+  "command": "C:\\PROGRA~1\\MICROS~2\\2022\\COMMUN~1\\VC\\Tools\\Llvm\\x64\\bin\\clang-cl.exe  /nologo -TP -IC:\\Users\\lukas\\Documents\\04_projects\\LBM\\include -IC:\\Users\\lukas\\Documents\\04_projects\\LBM\\build /DWIN32 /D_WINDOWS /GR /EHsc /O2 /Ob2 /DNDEBUG -std:c++17 -MD -Wall -Wextra -Wshadow -Wformat=2 -Wunused -Wno-c++98-compat -O3 -march=native -funroll-loops -mtune=native -fomit-frame-pointer /YuC:/Users/lukas/Documents/04_projects/LBM/build/CMakeFiles/LBM.dir/cmake_pch.hxx /FpC:/Users/lukas/Documents/04_projects/LBM/build/CMakeFiles/LBM.dir/./cmake_pch.cxx.pch /FIC:/Users/lukas/Documents/04_projects/LBM/build/CMakeFiles/LBM.dir/cmake_pch.hxx /FoCMakeFiles\\LBM.dir\\src\\helpers.cpp.obj /FdCMakeFiles\\LBM.dir\\ -c -- C:\\Users\\lukas\\Documents\\04_projects\\LBM\\src\\helpers.cpp",
+  "file": "C:\\Users\\lukas\\Documents\\04_projects\\LBM\\src\\helpers.cpp",
+  "output": "CMakeFiles\\LBM.dir\\src\\helpers.cpp.obj"
 },
 {
-  "directory": "/home/lukas/Documents/04_projects/LBM/build",
-  "command": "/usr/bin/clang++ -I/home/lukas/Documents/04_projects/LBM/include -I/home/lukas/Documents/04_projects/LBM/build -O3 -DNDEBUG -std=gnu++17 -Wall -Wextra -Wshadow -Wformat=2 -Wunused -O3 -march=native -funroll-loops -mtune=native -fomit-frame-pointer -Winvalid-pch -Xclang -include-pch -Xclang /home/lukas/Documents/04_projects/LBM/build/CMakeFiles/LBM.dir/cmake_pch.hxx.pch -Xclang -include -Xclang /home/lukas/Documents/04_projects/LBM/build/CMakeFiles/LBM.dir/cmake_pch.hxx -o CMakeFiles/LBM.dir/src/export_data.cpp.o -c /home/lukas/Documents/04_projects/LBM/src/export_data.cpp",
-  "file": "/home/lukas/Documents/04_projects/LBM/src/export_data.cpp",
-  "output": "CMakeFiles/LBM.dir/src/export_data.cpp.o"
+  "directory": "C:/Users/lukas/Documents/04_projects/LBM/build",
+  "command": "C:\\PROGRA~1\\MICROS~2\\2022\\COMMUN~1\\VC\\Tools\\Llvm\\x64\\bin\\clang-cl.exe  /nologo -TP -IC:\\Users\\lukas\\Documents\\04_projects\\LBM\\include -IC:\\Users\\lukas\\Documents\\04_projects\\LBM\\build /DWIN32 /D_WINDOWS /GR /EHsc /O2 /Ob2 /DNDEBUG -std:c++17 -MD -Wall -Wextra -Wshadow -Wformat=2 -Wunused -Wno-c++98-compat -O3 -march=native -funroll-loops -mtune=native -fomit-frame-pointer /YuC:/Users/lukas/Documents/04_projects/LBM/build/CMakeFiles/LBM.dir/cmake_pch.hxx /FpC:/Users/lukas/Documents/04_projects/LBM/build/CMakeFiles/LBM.dir/./cmake_pch.cxx.pch /FIC:/Users/lukas/Documents/04_projects/LBM/build/CMakeFiles/LBM.dir/cmake_pch.hxx /FoCMakeFiles\\LBM.dir\\src\\export_data.cpp.obj /FdCMakeFiles\\LBM.dir\\ -c -- C:\\Users\\lukas\\Documents\\04_projects\\LBM\\src\\export_data.cpp",
+  "file": "C:\\Users\\lukas\\Documents\\04_projects\\LBM\\src\\export_data.cpp",
+  "output": "CMakeFiles\\LBM.dir\\src\\export_data.cpp.obj"
 },
 {
-  "directory": "/home/lukas/Documents/04_projects/LBM/build",
-  "command": "/usr/bin/clang++ -I/home/lukas/Documents/04_projects/LBM/include -I/home/lukas/Documents/04_projects/LBM/build -O3 -DNDEBUG -std=gnu++17 -Wall -Wextra -Wshadow -Wformat=2 -Wunused -O3 -march=native -funroll-loops -mtune=native -fomit-frame-pointer -Winvalid-pch -Xclang -include-pch -Xclang /home/lukas/Documents/04_projects/LBM/build/CMakeFiles/LBM.dir/cmake_pch.hxx.pch -Xclang -include -Xclang /home/lukas/Documents/04_projects/LBM/build/CMakeFiles/LBM.dir/cmake_pch.hxx -o CMakeFiles/LBM.dir/src/course_ex/ex_3.cpp.o -c /home/lukas/Documents/04_projects/LBM/src/course_ex/ex_3.cpp",
-  "file": "/home/lukas/Documents/04_projects/LBM/src/course_ex/ex_3.cpp",
-  "output": "CMakeFiles/LBM.dir/src/course_ex/ex_3.cpp.o"
+  "directory": "C:/Users/lukas/Documents/04_projects/LBM/build",
+  "command": "C:\\PROGRA~1\\MICROS~2\\2022\\COMMUN~1\\VC\\Tools\\Llvm\\x64\\bin\\clang-cl.exe  /nologo -TP -IC:\\Users\\lukas\\Documents\\04_projects\\LBM\\include -IC:\\Users\\lukas\\Documents\\04_projects\\LBM\\build /DWIN32 /D_WINDOWS /GR /EHsc /O2 /Ob2 /DNDEBUG -std:c++17 -MD -Wall -Wextra -Wshadow -Wformat=2 -Wunused -Wno-c++98-compat -O3 -march=native -funroll-loops -mtune=native -fomit-frame-pointer /YuC:/Users/lukas/Documents/04_projects/LBM/build/CMakeFiles/LBM.dir/cmake_pch.hxx /FpC:/Users/lukas/Documents/04_projects/LBM/build/CMakeFiles/LBM.dir/./cmake_pch.cxx.pch /FIC:/Users/lukas/Documents/04_projects/LBM/build/CMakeFiles/LBM.dir/cmake_pch.hxx /FoCMakeFiles\\LBM.dir\\src\\course_ex\\ex_3.cpp.obj /FdCMakeFiles\\LBM.dir\\ -c -- C:\\Users\\lukas\\Documents\\04_projects\\LBM\\src\\course_ex\\ex_3.cpp",
+  "file": "C:\\Users\\lukas\\Documents\\04_projects\\LBM\\src\\course_ex\\ex_3.cpp",
+  "output": "CMakeFiles\\LBM.dir\\src\\course_ex\\ex_3.cpp.obj"
 }
 ]

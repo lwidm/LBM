@@ -57,7 +57,7 @@ def ex3_plot(directory: str, name: str) -> int:
         max_mag = np.max([max_mag, np.max(mag_arrays[i])])
 
     fig = plt.figure()
-    pcolor_numpy_series(name, fig, X, Y, ux_files, mag_arrays, (0, max_mag), 0.1)
+    pcolor_numpy_series(name, fig, X, Y, ux_files, mag_arrays, (0, max_mag), 0.02)
 
     ux = load_eigen_matrix(ux_files[-1])
     uy = load_eigen_matrix(uy_files[-1])
